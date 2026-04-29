@@ -10,6 +10,7 @@
 @layer base {
   body {
     @apply font-plus-jakarta selection:bg-blue-100 dark:selection:bg-blue-900/30;
+    overscroll-behavior-y: contain;
   }
 }
 

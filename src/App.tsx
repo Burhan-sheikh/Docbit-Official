@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Home } from './components/Home';
@@ -12,11 +12,24 @@ const PdfToImgTool = lazy(() => import('./components/tools/PdfToImgTool'));
 const ImgToPdfTool = lazy(() => import('./components/tools/ImgToPdfTool'));
 const CompressTool = lazy(() => import('./components/tools/CompressTool'));
 const ResizeTool = lazy(() => import('./components/tools/ResizeTool'));
-// Others will be added as we go
 
 export default function App() {
   const location = useLocation();
   const activeTool = TOOLS.find(t => t.href === location.pathname);
+
+  // Prevention of accidental refresh/data loss
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Only prompt if we are in a tool page (not home)
+      if (location.pathname !== '/') {
+        e.preventDefault();
+        e.returnValue = 'Data loss may occur. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [location.pathname]);
 
   return (
     <Layout activeToolName={activeTool?.name}>
@@ -31,7 +44,6 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/tool/organize" element={<OrganizerTool />} />
-          <Route path="/tool/rotate" element={<OrganizerTool />} />
           <Route path="/tool/merge" element={<MergeTool />} />
           <Route path="/tool/split" element={<SplitTool />} />
           <Route path="/tool/pdf-to-img" element={<PdfToImgTool />} />

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { motion, AnimatePresence } from 'motion/react';
-import { FileImage, Scissors, FileDown, Menu, Home as HomeIcon } from 'lucide-react';
+import { FileImage, Scissors, FileDown, Menu, Home as HomeIcon, FileStack } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 
@@ -17,7 +17,7 @@ export function Layout({ children, activeToolName, onReset }: LayoutProps) {
   const location = useLocation();
 
   const navItems = [
-    { label: 'Home', icon: <HomeIcon className="w-5 h-5" />, href: '/' },
+    { label: 'Organize', icon: <FileStack className="w-5 h-5" />, href: '/tool/organize' },
     { label: 'Img ➔ PDF', icon: <FileImage className="w-5 h-5" />, href: '/tool/img-to-pdf' },
     { label: 'Split', icon: <Scissors className="w-5 h-5" />, href: '/tool/split' },
     { label: 'Compress', icon: <FileDown className="w-5 h-5" />, href: '/tool/compress' },
@@ -89,16 +89,6 @@ export function Layout({ children, activeToolName, onReset }: LayoutProps) {
               <span className="text-[10px] font-bold uppercase tracking-tighter">{item.label}</span>
             </Link>
           ))}
-          
-          <button 
-            onClick={() => setIsSidebarOpen(true)}
-            className="flex-1 flex flex-col items-center justify-center gap-1.5 h-full text-neutral-500 dark:text-neutral-400 opacity-60 hover:opacity-100 transition-all duration-200"
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center">
-              <Menu className="w-5 h-5" />
-            </div>
-            <span className="text-[10px] font-bold uppercase tracking-tighter">More</span>
-          </button>
         </div>
       </div>
     </div>

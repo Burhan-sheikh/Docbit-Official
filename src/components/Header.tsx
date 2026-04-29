@@ -31,6 +31,13 @@ export function Header({ activeToolName, onMenuClick, onReset }: HeaderProps) {
   return (
     <header className="h-16 border-b border-neutral-200 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md sticky top-0 z-30 px-4 md:px-6 flex items-center justify-between transition-colors">
       <div className="flex items-center gap-4">
+        <button 
+          onClick={onMenuClick}
+          className="md:hidden p-2 -ml-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-white rounded-lg transition-all"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+
         <Link to="/" className="flex items-center gap-1.5 group">
           <span className="text-2xl font-black tracking-tighter flex items-center">
             <span className="text-neutral-900 dark:text-white">Doc</span>

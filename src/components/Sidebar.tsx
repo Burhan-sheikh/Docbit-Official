@@ -31,22 +31,6 @@ export function Sidebar({ onSelect }: SidebarProps) {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-4 py-2 space-y-1 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
-        <section className="mb-6">
-          <Link
-            to="/"
-            onClick={onSelect}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-sm",
-              location.pathname === '/' 
-                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" 
-                : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
-            )}
-          >
-            <LayoutGrid className="w-5 h-5" />
-            Home / Dashboard
-          </Link>
-        </section>
-
         {TOOLS.map((tool) => (
           <Link
             key={tool.id}

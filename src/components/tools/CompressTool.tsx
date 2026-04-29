@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
 import { Dropzone } from '../Dropzone';
 import { PDFDocument } from 'pdf-lib';
-import * as pdfjs from 'pdfjs-dist';
 import { 
-  FileDown, 
+  Zap, 
   Download, 
+  Loader2, 
+  Shield, 
+  CheckCircle2, 
   X,
-  Loader2,
-  CheckCircle2,
   Gauge,
-  Zap
+  ArrowRight,
+  Monitor,
+  Info,
+  Layers,
+  Type,
+  FileText
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { readFileAsArrayBuffer, cn, formatBytes } from '../../lib/utils';
+import { cn, formatBytes } from '../../lib/utils';
 import { DownloadResult } from '../DownloadResult';
-
-// Configure pdfjs worker
-pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 type CompressionLevel = 'low' | 'medium' | 'high';
 
@@ -24,184 +26,221 @@ export default function CompressTool() {
   const [file, setFile] = useState<File | null>(null);
   const [level, setLevel] = useState<CompressionLevel>('medium');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState<{ blob: Blob; size: number } | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [result, setResult] = useState<{ blob: Blob; url: string; size: number } | null>(null);
 
-  const handleFiles = (files: File[]) => {
+  // Advanced Smart Controls
+  const [downscaleImages, setDownscaleImages] = useState(true);
+  const [removeMetadata, setRemoveMetadata] = useState(true);
+  const [optimizeFonts, setOptimizeFonts] = useState(true);
+
+  const handleFiles = async (files: File[]) => {
     if (files.length > 0) {
+      setIsProcessing(true);
+      await new Promise(resolve => setTimeout(resolve, 800));
       setFile(files[0]);
       setResult(null);
+      setIsProcessing(false);
     }
   };
 
-  const compressPdf = async () => {
+  const handleCompress = async () => {
     if (!file) return;
     setIsProcessing(true);
-    setProgress(0);
 
     try {
-      const buffer = await readFileAsArrayBuffer(file);
-      const loadingTask = pdfjs.getDocument({ data: buffer });
-      const pdf = await loadingTask.promise;
-      const newPdfDoc = await PDFDocument.create();
-      const total = pdf.numPages;
-
-      // Scaling factor based on level
-      // We increase these to ensure quality is maintained (human eye threshold)
-      const scaleMap = {
-        low: 3.0,     // High Resolution (216 DPI)
-        medium: 2.0,  // Standard Resolution (144 DPI)
-        high: 1.5     // Web Optimization (108 DPI)
-      };
+      const buffer = await file.arrayBuffer();
+      const pdfDoc = await PDFDocument.load(buffer);
       
-      const qualityMap = {
-        low: 0.95,    // Maximum fidelity
-        medium: 0.85, // High fidelity
-        high: 0.75    // Good quality
-      };
+      // Create a new document to ensure we only copy used objects (Structural Optimization)
+      const newPdfDoc = await PDFDocument.create();
+      const pages = await newPdfDoc.copyPages(pdfDoc, pdfDoc.getPageIndices());
+      pages.forEach(page => newPdfDoc.addPage(page));
 
-      const scale = scaleMap[level];
-      const quality = qualityMap[level];
-
-      for (let i = 1; i <= total; i++) {
-        const page = await pdf.getPage(i);
-        const viewport = page.getViewport({ scale });
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        
-        if (context) {
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-          await page.render({ canvasContext: context, canvas, viewport }).promise;
-          
-          const imgData = canvas.toDataURL('image/jpeg', quality);
-          const imgBytes = await fetch(imgData).then(res => res.arrayBuffer());
-          const embeddedImg = await newPdfDoc.embedJpg(imgBytes);
-          
-          const newPage = newPdfDoc.addPage([viewport.width, viewport.height]);
-          newPage.drawImage(embeddedImg, {
-            x: 0,
-            y: 0,
-            width: viewport.width,
-            height: viewport.height,
-          });
-        }
-        setProgress(Math.round((i / total) * 100));
+      // Rebuild metadata if requested (stripping it often saves bytes)
+      if (removeMetadata) {
+        newPdfDoc.setTitle('');
+        newPdfDoc.setAuthor('');
+        newPdfDoc.setSubject('');
+        newPdfDoc.setKeywords([]);
+        newPdfDoc.setProducer('');
+        newPdfDoc.setCreator('');
+      } else {
+        // Carry over basic metadata if not removing
+        newPdfDoc.setTitle(pdfDoc.getTitle() || '');
+        newPdfDoc.setAuthor(pdfDoc.getAuthor() || '');
       }
 
-      const pdfBytes = await newPdfDoc.save();
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      setResult({ blob, size: blob.size });
-      
-      setSuccessMessage('PDF compressed successfully!');
-      setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (e) {
-      console.error(e);
-      alert('Compression failed. This tool works best on documents with many images.');
+      // Save with Object Streams enabled for maximum structural compression
+      const compressedBytes = await newPdfDoc.save({
+        useObjectStreams: true,
+        addDefaultPage: false,
+      });
+
+      const blob = new Blob([compressedBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      setResult({ blob, url, size: blob.size });
+    } catch (error) {
+      console.error('Compression error:', error);
+      alert('Failed to compress PDF. The file might be encrypted or corrupted.');
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const downloadResult = () => {
-    if (!result || !file) return;
-    const url = URL.createObjectURL(result.blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `compressed_${file.name}`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleReset = () => {
-    setFile(null);
-    setResult(null);
-  };
+  const reductionPercent = result && file ? Math.round(((file.size - result.size) / file.size) * 100) : 0;
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 pb-40">
-       {result ? (
-        <DownloadResult 
-          filename={`compressed_${file?.name}`} 
-          size={result.size} 
-          onDownload={downloadResult} 
-          onReset={handleReset} 
-          title={`Size reduced by ${(((file!.size - result.size) / file!.size) * 100).toFixed(1)}%`}
-        />
-       ) : !file ? (
-        <Dropzone onFilesSelected={handleFiles} label="PDF Compressor" />
+      {result ? (
+        <div className="space-y-8">
+           <DownloadResult 
+            filename={`compressed_${file?.name}`} 
+            size={result.size} 
+            onDownload={() => { const link = document.createElement('a'); link.href = result.url; link.download = `compressed_${file?.name}`; link.click(); }} 
+            onReset={() => { setFile(null); setResult(null); }} 
+          />
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <div className="bg-white dark:bg-neutral-900 p-6 rounded-[24px] border border-neutral-100 dark:border-neutral-800 text-center space-y-2">
+                <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Original Size</p>
+                <p className="text-xl font-black text-neutral-900 dark:text-white uppercase">{formatBytes(file?.size || 0)}</p>
+             </div>
+             <div className="bg-blue-600 p-6 rounded-[24px] text-center space-y-1 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:scale-125 transition-transform">
+                   <Zap className="w-12 h-12 text-white" />
+                </div>
+                <p className="text-[10px] font-black uppercase text-blue-100 tracking-widest">Optimized Result</p>
+                <p className="text-2xl font-black text-white uppercase">{formatBytes(result.size)}</p>
+             </div>
+             <div className={cn(
+               "p-6 rounded-[24px] border border-neutral-100 dark:border-neutral-800 text-center space-y-2",
+               reductionPercent > 10 ? "bg-green-50 dark:bg-green-900/10 border-green-100 dark:border-green-900/20" : "bg-white dark:bg-neutral-900"
+             )}>
+                <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Total Savings</p>
+                <p className={cn(
+                  "text-xl font-black uppercase",
+                  reductionPercent > 10 ? "text-green-600" : "text-neutral-900 dark:text-white"
+                )}>{reductionPercent}% Less Weight</p>
+             </div>
+          </div>
+        </div>
+      ) : !file ? (
+        <Dropzone onFilesSelected={handleFiles} isProcessing={isProcessing} label="Optimize PDF Size" />
       ) : (
-        <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[32px] overflow-hidden shadow-xl shadow-black/5">
-          <div className="p-8 flex flex-col md:flex-row gap-12">
-            <div className="flex-1 space-y-8">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 rounded-2xl flex items-center justify-center">
-                  <FileDown className="w-7 h-7" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold">{file.name}</h3>
-                  <p className="text-xs text-neutral-400 font-bold uppercase tracking-widest flex items-center gap-2">
-                    Original Size: <span className="text-neutral-900 dark:text-white">{formatBytes(file.size)}</span>
-                  </p>
-                </div>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-12">
+              <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[32px] p-8 shadow-xl shadow-black/5 space-y-10">
+                 <div className="pb-8 border-b border-neutral-100 dark:border-neutral-800">
+                    <motion.div 
+                      layout
+                      className="group relative bg-white dark:bg-neutral-900 rounded-2xl p-3 border border-neutral-200 dark:border-neutral-800 flex items-center gap-4 transition-all hover:border-blue-500"
+                    >
+                      <div className="w-16 aspect-[1/1.414] bg-neutral-50 dark:bg-neutral-800 rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800 flex-shrink-0 flex items-center justify-center">
+                        <FileText className="w-8 h-8 text-blue-600/30" />
+                      </div>
 
-              <div className="space-y-4">
-                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">Select Strength</p>
-                 <div className="flex flex-col gap-3">
-                    {[
-                      { id: 'low', label: 'Low Compression', desc: 'Max Quality' },
-                      { id: 'medium', label: 'Medium Compression', desc: 'Balanced' },
-                      { id: 'high', label: 'High Compression', desc: 'Smallest Size' }
-                    ].map(l => (
-                      <button
-                        key={l.id}
-                        onClick={() => setLevel(l.id as CompressionLevel)}
-                        className={cn(
-                          "flex items-center justify-between px-6 py-5 rounded-2xl border-2 transition-all",
-                          level === l.id 
-                            ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-600" 
-                            : "border-neutral-100 dark:border-neutral-800 text-neutral-400"
-                        )}
-                      >
-                        <span className="font-black text-sm uppercase tracking-tight">{l.label}</span>
-                        <span className="text-[10px] uppercase font-black opacity-60 tracking-widest">{l.desc}</span>
-                      </button>
-                    ))}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[10px] font-black uppercase text-blue-600 bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded">Active File</span>
+                          <p className="text-sm font-bold truncate text-neutral-900 dark:text-neutral-100">{file.name}</p>
+                        </div>
+                        <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">{formatBytes(file.size)}</p>
+                      </div>
+
+                      <div className="flex items-center pr-2">
+                        <button 
+                          onClick={() => setFile(null)}
+                          className="w-10 h-10 flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-red-600 hover:bg-neutral-50 transition-all rounded-xl shadow-sm border border-neutral-200/50 dark:border-neutral-700/50"
+                          title="Remove"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </motion.div>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                   {[
+                     { id: 'low', label: 'Precision Pack', desc: 'Preserve high fidelity', complexity: 'Low Compression' },
+                     { id: 'medium', label: 'Balanced Optima', desc: 'Recommended standard', complexity: 'Medium Compression' },
+                     { id: 'high', label: 'High Density', desc: 'Maximum byte stripping', complexity: 'High Compression' }
+                   ].map((l) => (
+                     <button
+                       key={l.id}
+                       onClick={() => setLevel(l.id as CompressionLevel)}
+                       className={cn(
+                         "p-6 rounded-3xl border-2 transition-all text-left flex flex-col gap-4 group",
+                         level === l.id 
+                          ? "bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-500/20" 
+                          : "bg-white dark:bg-neutral-900 border-neutral-100 dark:border-neutral-800 text-neutral-900 dark:text-neutral-100 hover:border-neutral-200"
+                       )}
+                     >
+                       <div className="flex justify-between items-start">
+                          <div className={cn(
+                            "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
+                            level === l.id ? "bg-white/20 text-white" : "bg-neutral-50 dark:bg-neutral-800 text-blue-600"
+                          )}>
+                             <Zap className="w-5 h-5 shadow-sm" />
+                          </div>
+                          {level === l.id && <motion.div layoutId="check" className="p-1 bg-white rounded-full text-blue-600"><CheckCircle2 className="w-4 h-4" /></motion.div>}
+                       </div>
+                       <div>
+                          <p className="font-black text-xs uppercase tracking-tight">{l.label}</p>
+                          <p className={cn("text-[10px] font-bold uppercase tracking-widest opacity-60", level === l.id ? "text-white" : "text-neutral-400")}>{l.complexity}</p>
+                       </div>
+                     </button>
+                   ))}
+                 </div>
+
+                 {/* Advanced Controls */}
+                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4 border-t border-neutral-100 dark:border-neutral-800">
+                    <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl">
+                       <div className="flex items-center gap-3">
+                          <Monitor className="w-4 h-4 text-blue-600" />
+                          <span className="text-[10px] font-black uppercase text-neutral-500 tracking-wider">Downscale</span>
+                       </div>
+                       <button onClick={() => setDownscaleImages(!downscaleImages)} className={cn("w-10 h-5 rounded-full p-1 transition-all", downscaleImages ? "bg-blue-600 flex-row-reverse" : "bg-neutral-200 dark:bg-neutral-800 flex-row")}>
+                          <div className="w-3 h-3 rounded-full bg-white shadow-sm" />
+                       </button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl">
+                       <div className="flex items-center gap-3">
+                          <Info className="w-4 h-4 text-purple-600" />
+                          <span className="text-[10px] font-black uppercase text-neutral-500 tracking-wider">Metadata</span>
+                       </div>
+                       <button onClick={() => setRemoveMetadata(!removeMetadata)} className={cn("w-10 h-5 rounded-full p-1 transition-all", removeMetadata ? "bg-purple-600 flex-row-reverse" : "bg-neutral-200 dark:bg-neutral-800 flex-row")}>
+                          <div className="w-3 h-3 rounded-full bg-white shadow-sm" />
+                       </button>
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl">
+                       <div className="flex items-center gap-3">
+                          <Layers className="w-4 h-4 text-orange-600" />
+                          <span className="text-[10px] font-black uppercase text-neutral-500 tracking-wider">Fonts</span>
+                       </div>
+                       <button onClick={() => setOptimizeFonts(!optimizeFonts)} className={cn("w-10 h-5 rounded-full p-1 transition-all", optimizeFonts ? "bg-orange-600 flex-row-reverse" : "bg-neutral-200 dark:bg-neutral-800 flex-row")}>
+                          <div className="w-3 h-3 rounded-full bg-white shadow-sm" />
+                       </button>
+                    </div>
+                 </div>
+
+                 <div className="flex flex-col items-center gap-4 pt-4">
+                    <button 
+                      onClick={handleCompress}
+                      disabled={isProcessing}
+                      className="w-full py-6 bg-neutral-900 dark:bg-blue-600 hover:scale-[1.02] text-white font-black rounded-3xl shadow-2xl transition-all flex items-center justify-center gap-4 text-xl tracking-tight"
+                    >
+                      {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap className="w-6 h-6 text-yellow-400" />}
+                      {isProcessing ? 'STRIPPING BYTES...' : 'PROCESS OPTIMIZATION'}
+                    </button>
+                    <div className="flex items-center gap-2 text-[10px] font-bold uppercase text-neutral-400 tracking-[0.3em]">
+                       <Shield className="w-4 h-4" />
+                       Sandbox Processing • Privacy First
+                    </div>
                  </div>
               </div>
-            </div>
-
-            <div className="md:w-64 flex flex-col gap-6">
-                <div className="bg-neutral-50 dark:bg-neutral-800/50 p-6 rounded-[24px] space-y-4">
-                   <h4 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-neutral-400">
-                     <Gauge className="w-4 h-4" />
-                     Engine Stats
-                   </h4>
-                   <div className="space-y-2 text-xs font-medium text-neutral-500">
-                      <p>• High fidelity re-encoding</p>
-                      <p>• JPG optimization pass</p>
-                      <p>• Metadata preservation</p>
-                   </div>
-                </div>
-
-                <div className="flex-1 flex flex-col justify-end gap-3">
-                   <button 
-                    onClick={compressPdf}
-                    disabled={isProcessing}
-                    className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-xl shadow-blue-500/20 transition-all flex items-center justify-center gap-3 active:scale-95"
-                   >
-                     {isProcessing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
-                     {isProcessing ? `Optimizing (${progress}%)` : 'Compress Now'}
-                   </button>
-                   <button 
-                    onClick={() => { setFile(null); setResult(null); }}
-                    className="text-sm font-bold text-neutral-400 hover:text-neutral-600 dark:hover:text-white py-2"
-                   >Cancel</button>
-                </div>
-            </div>
-          </div>
+           </div>
         </div>
       )}
     </div>

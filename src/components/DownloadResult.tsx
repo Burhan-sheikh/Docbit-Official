@@ -44,15 +44,9 @@ export function DownloadResult({ filename, size, onDownload, onReset, title = "P
                 </div>
              </div>
              
-             <div className="pt-4 border-t border-neutral-100 dark:border-neutral-700/50 space-y-2">
-                <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-neutral-400">
-                   <span>Standard Metric</span>
-                   <span className="text-neutral-900 dark:text-white">{formatBytes(size)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                   <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Binary Exact</span>
-                   <span className="text-[11px] font-mono font-bold text-blue-600 dark:text-blue-400">{size.toLocaleString()} Bytes</span>
-                </div>
+             <div className="pt-4 border-t border-neutral-100 dark:border-neutral-700/50 flex justify-between items-center text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+                <span>Exact File Size</span>
+                <span className="text-blue-600 dark:text-blue-400 font-mono">{size.toLocaleString()} Bytes</span>
              </div>
           </div>
 
