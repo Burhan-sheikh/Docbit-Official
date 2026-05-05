@@ -35,7 +35,7 @@ export function Header({ activeToolName, onMenuClick, onReset }: HeaderProps) {
           onClick={onMenuClick}
           className="md:hidden p-2 -ml-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-white rounded-lg transition-all"
         >
-          <Menu className="w-6 h-6 mt-1" />
+          <Menu className="w-6 h-6" />
         </button>
 
         <Link to="/" className="flex items-center gap-1.5 group">
