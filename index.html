@@ -3,14 +3,51 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Primary SEO -->
     <title>Merge, Split & Convert PDFs | DocBit</title>
     <meta name="description" content="Work with your documents directly in your browser. Combine files, extract pages, and turn PDFs into images or images into PDFs with a fast, simple workflow." />
     <meta name="theme-color" content="#2563eb" />
+    <link rel="canonical" href="https://docbit.netlify.app/" />
+
+    <!-- Indexing -->
+    <meta name="robots" content="index, follow" />
+
+    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link rel="apple-touch-icon" href="/icon.svg" />
+
+    <!-- PWA / Apple -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="DocBit">
+
+    <!-- Open Graph (Facebook, WhatsApp, LinkedIn) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Merge, Split & Convert PDFs | DocBit" />
+    <meta property="og:description" content="Work with your documents directly in your browser. Combine files, extract pages, and turn PDFs into images or images into PDFs with a fast, simple workflow." />
+    <meta property="og:url" content="https://yourdomain.com/" />
+    <meta property="og:image" content="https://res.cloudinary.com/dlesei0kn/image/upload/v1778009931/og_docbit_urhmqo.jpg" />
+    <meta property="og:image:secure_url" content="https://res.cloudinary.com/dlesei0kn/image/upload/v1778009931/og_docbit_urhmqo.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="DocBit" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter (X) -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Merge, Split & Convert PDFs | DocBit" />
+    <meta name="twitter:description" content="Work with your documents directly in your browser. Combine files, extract pages, and turn PDFs into images or images into PDFs with a fast, simple workflow." />
+    <meta name="twitter:image" content="https://res.cloudinary.com/dlesei0kn/image/upload/v1778009931/og_docbit_urhmqo.jpg" />
+
+    <!-- Optional but useful -->
+    <meta name="twitter:site" content="@yourhandle" />
+    <meta name="twitter:creator" content="@yourhandle" />
+
+    <!-- Performance -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+
+    <!-- Theme Script (no change) -->
     <script>
       (function() {
         const theme = localStorage.getItem('theme');
@@ -21,10 +58,24 @@
         }
       })();
     </script>
+
+    <!-- Structured Data (SEO boost) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "DocBit",
+        "url": "https://yourdomain.com/",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "All",
+        "description": "Work with your documents directly in your browser. Combine files, extract pages, and turn PDFs into images or images into PDFs with a fast, simple workflow."
+      }
+    </script>
+
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-
