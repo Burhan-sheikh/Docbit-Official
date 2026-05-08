@@ -19,10 +19,10 @@ export function Layout({ children, activeToolName, onReset }: LayoutProps) {
   const location = useLocation();
 
   const navItems = [
-    { label: 'Img ➔ PDF', icon: <FileImage className="w-5 h-5" />, href: '/tool/img-to-pdf' },
-    { label: 'PDF ➔ Img', icon: <ImageIcon className="w-5 h-5" />, href: '/tool/pdf-to-img' },
-    { label: 'Merge', icon: <Combine className="w-5 h-5" />, href: '/tool/merge' },
-    { label: 'Split', icon: <Scissors className="w-5 h-5" />, href: '/tool/split' },
+    { label: 'Img ➔ PDF', icon: <FileImage className="w-5 h-5" />, href: '/tools/image-to-pdf' },
+    { label: 'PDF ➔ Img', icon: <ImageIcon className="w-5 h-5" />, href: '/tools/pdf-to-images' },
+    { label: 'Merge', icon: <Combine className="w-5 h-5" />, href: '/tools/merge-pdf' },
+    { label: 'Split', icon: <Scissors className="w-5 h-5" />, href: '/tools/split-pdf' },
   ];
 
   return (
@@ -70,7 +70,7 @@ export function Layout({ children, activeToolName, onReset }: LayoutProps) {
             <div className="flex-1 p-4 md:p-6 lg:p-8">
               {children}
             </div>
-            <Footer variant={location.pathname.startsWith('/tool/') ? 'minimal' : 'full'} />
+            <Footer variant={location.pathname.startsWith('/tools/') ? 'minimal' : 'full'} />
           </div>
         </main>
 
