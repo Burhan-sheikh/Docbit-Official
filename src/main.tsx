@@ -12,12 +12,11 @@ const MergeTool = lazy(() => import('./components/tools/MergeTool'));
 const SplitTool = lazy(() => import('./components/tools/SplitTool'));
 const PdfToImgTool = lazy(() => import('./components/tools/PdfToImgTool'));
 const ImgToPdfTool = lazy(() => import('./components/tools/ImgToPdfTool'));
+const GrayscaleTool = lazy(() => import('./components/tools/GrayscaleTool'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const Terms = lazy(() => import('./components/Terms'));
 const About = lazy(() => import('./components/About'));
 const Contact = lazy(() => import('./components/Contact'));
-const Help = lazy(() => import('./components/Help'));
-const GuideDetail = lazy(() => import('./components/GuideDetail'));
 const NotFound = lazy(() => import('./components/NotFound'));
 
 // Register service worker for PWA
@@ -33,12 +32,11 @@ const router = createBrowserRouter([
       { path: 'tools/split-pdf', element: <SplitTool /> },
       { path: 'tools/pdf-to-images', element: <PdfToImgTool /> },
       { path: 'tools/image-to-pdf', element: <ImgToPdfTool /> },
+      { path: 'tools/grayscale-pdf', element: <GrayscaleTool /> },
       { path: 'privacy', element: <PrivacyPolicy /> },
       { path: 'terms', element: <Terms /> },
       { path: 'about', element: <About /> },
       { path: 'contact', element: <Contact /> },
-      { path: 'help', element: <Help /> },
-      { path: 'guides/:slug', element: <GuideDetail /> },
       { path: '*', element: <NotFound /> },
     ],
   },

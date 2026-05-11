@@ -41,6 +41,7 @@ import {
   getHowToSchema
 } from '../../seo/structuredData';
 import { getFAQSchema } from '../../utils/schema/faqSchema';
+import { TOOL_SEO_CONTENT } from '../../constants/toolSeoContent';
 
 type FitMode = 'fit' | 'fill' | 'stretch';
 type PageSize = 'A4' | 'A3' | 'Letter' | 'Custom';
@@ -49,7 +50,7 @@ type Orientation = 'portrait' | 'landscape';
 interface ImgData {
   id: string;
   file: File;
-  preview: string;
+  thumbnail: string;
   rotation: number;
   status: 'ready' | 'processing';
 }
@@ -75,7 +76,7 @@ export default function ImgToPdfTool() {
   const [spacing, setSpacing] = useState(0);
 
   const [result, setResult] = useState<{ url: string; size: number } | null>(null);
-  const [previewItem, setPreviewItem] = useState<ImgData | null>(null);
+  const [viewerItem, setViewerItem] = useState<ImgData | null>(null);
 
   const blocker = useFileExitConfirm({ isDirty: images.length > 0 && !result });
 
@@ -86,7 +87,7 @@ export default function ImgToPdfTool() {
     const pending: ImgData[] = files.map(f => ({
       id: Math.random().toString(36).substr(2, 9),
       file: f,
-      preview: '',
+      thumbnail: '',
       rotation: 0,
       status: 'processing'
     }));
@@ -94,14 +95,14 @@ export default function ImgToPdfTool() {
     setImages(prev => [...prev, ...pending]);
     setResult(null);
 
-    // Process each image (generate preview)
+    // Process each image (generate thumbnail)
     for (const item of pending) {
       // Small simulated delay for organic feel
       await new Promise(resolve => setTimeout(resolve, 300 + Math.random() * 400));
       
-      const preview = URL.createObjectURL(item.file);
+      const thumbnail = URL.createObjectURL(item.file);
       setImages(prev => prev.map(img => 
-        img.id === item.id ? { ...img, preview, status: 'ready' } : img
+        img.id === item.id ? { ...img, thumbnail, status: 'ready' } : img
       ));
     }
     
@@ -151,7 +152,7 @@ export default function ImgToPdfTool() {
       for (let i = 0; i < images.length; i++) {
         const imgData = images[i];
         const img = new Image();
-        img.src = imgData.preview;
+        img.src = imgData.thumbnail;
         await new Promise((resolve, reject) => {
           img.onload = resolve;
           img.onerror = reject;
@@ -296,35 +297,13 @@ export default function ImgToPdfTool() {
           onReset={() => { setImages([]); setResult(null); }} 
         />
        ) : images.length === 0 ? (
-        <>
-          <Dropzone 
-            onFilesSelected={handleFiles} 
-            maxFiles={50} 
-            isProcessing={isAddingFiles}
-            accept={{ 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'], 'image/webp': ['.webp'] }}
-            label="Select Images (JPG, PNG, WebP)" 
-          />
-
-          <ToolInfo 
-            title="Image to PDF Converter"
-            steps={[
-              { title: "Select Images", desc: "Choose multiple JPG, PNG, or WebP files from your device or drag them here." },
-              { title: "Customize Layout", desc: "Adjust page size (A4, A3, Letter), margins, orientation, and image fit algorithms." },
-              { title: "Generate PDF", desc: "Click Generate to create a single perfectly formatted PDF from your images locally." }
-            ]}
-            benefits={[
-              { title: "Browser-Only Conversion", desc: "We convert images to PDF directly in your browser. No data is sent to servers, total privacy guaranteed.", icon: <ShieldCheck className="w-8 h-8" /> },
-              { title: "Smart Formatting", desc: "Full control over borders, background colors, and image scaling without server lag.", icon: <Settings2 className="w-8 h-8" /> },
-              { title: "No Upload Footprint", desc: "Support for JPG, JPEG, PNG, and WebP with zero trace left on the cloud.", icon: <ImageIcon className="w-8 h-8" /> }
-            ]}
-            faqs={tool.faqs || []}
-            relatedTools={TOOLS.filter(t => t.id !== 'img-to-pdf')}
-            seoContent={{
-              title: 'Create professional PDFs from your photos securely',
-              content: 'Convert images into a single, high-quality PDF document securely with DocBit. Our tool is designed for speed and absolute privacy, processing all your images locally in your browser. Whether you\'re a student combining assignment photos or a professional creating a document from scans, DocBit provides a seamless browser-based experience with zero server uploads required.'
-            }}
-          />
-        </>
+        <Dropzone 
+          onFilesSelected={handleFiles} 
+          maxFiles={50} 
+          isProcessing={isAddingFiles}
+          accept={{ 'image/png': ['.png'], 'image/jpeg': ['.jpg', '.jpeg'], 'image/webp': ['.webp'] }}
+          label="Select Images (JPG, PNG, WebP)" 
+        />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
            <div className="lg:col-span-8 space-y-6">
@@ -353,17 +332,17 @@ export default function ImgToPdfTool() {
                     handleRotate={handleRotate}
                     removeImg={removeImg} 
                     handleMove={handleMove}
-                    onPreview={setPreviewItem}
+                    onViewer={setViewerItem}
                   />
                 ))}
               </div>
            </div>
 
            <ImageViewer 
-             src={previewItem?.preview || ''} 
-             rotation={previewItem?.rotation || 0}
-             isOpen={!!previewItem} 
-             onClose={() => setPreviewItem(null)} 
+             src={viewerItem?.thumbnail || ''} 
+             rotation={viewerItem?.rotation || 0}
+             isOpen={!!viewerItem} 
+             onClose={() => setViewerItem(null)} 
            />
 
            <div className="lg:col-span-4 space-y-6">
@@ -542,9 +521,11 @@ export default function ImgToPdfTool() {
         </div>
       )}
       <ToolContent 
+        toolId={tool.id}
         toolName="Image to PDF"
         toolType="Convert"
         description="Transform your photos, scans, and images into professionally formatted PDF documents. Fast, secure, and entirely on your device."
+        longContent={TOOL_SEO_CONTENT.imgToPdf}
       />
 
       <NavigationConfirmModal 
@@ -556,7 +537,7 @@ export default function ImgToPdfTool() {
   );
 }
 
-function ImgItem({ img, index, isFirst, isLast, handleRotate, removeImg, handleMove, onPreview }: { 
+function ImgItem({ img, index, isFirst, isLast, handleRotate, removeImg, handleMove, onViewer }: { 
   img: ImgData; 
   index: number;
   isFirst: boolean;
@@ -564,7 +545,7 @@ function ImgItem({ img, index, isFirst, isLast, handleRotate, removeImg, handleM
   handleRotate: (id: string) => void;
   removeImg: (id: string) => void;
   handleMove: (id: string, direction: 'up' | 'down') => void;
-  onPreview: (item: ImgData) => void;
+  onViewer: (item: ImgData) => void;
   key?: React.Key;
 }) {
   const isProcessing = img.status === 'processing';
@@ -581,7 +562,7 @@ function ImgItem({ img, index, isFirst, isLast, handleRotate, removeImg, handleM
       )}
     >
       <div 
-        onClick={() => !isProcessing && onPreview(img)}
+        onClick={() => !isProcessing && onViewer(img)}
         className={cn(
           "relative w-24 aspect-[1/1.414] bg-neutral-50 dark:bg-neutral-800 rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800 flex-shrink-0 flex items-center justify-center",
           !isProcessing && "cursor-zoom-in"
@@ -593,12 +574,12 @@ function ImgItem({ img, index, isFirst, isLast, handleRotate, removeImg, handleM
           </div>
         ) : (
           <motion.img 
-            src={img.preview} 
+            src={img.thumbnail} 
             animate={{ 
               rotate: img.rotation,
               scale: img.rotation % 180 === 0 ? 1 : 0.707
             }}
-            alt="Preview" 
+            alt="Image Thumbnail" 
             className="w-full h-full object-contain pointer-events-none" 
           />
         )}

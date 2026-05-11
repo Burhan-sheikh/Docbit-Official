@@ -2,7 +2,8 @@ import {
   Combine, 
   Scissors, 
   FileImage, 
-  Images
+  Images,
+  Palette
 } from 'lucide-react';
 import React from 'react';
 
@@ -141,5 +142,34 @@ export const TOOLS: PDFTool[] = [
     icon: <Scissors className="w-6 h-6" />,
     category: 'edit',
     href: '/tools/split-pdf',
+  },
+  {
+    id: 'grayscale-pdf',
+    name: 'Grayscale PDF',
+    description: 'Convert your color PDFs to grayscale or black and white for efficient printing.',
+    seoTitle: 'Grayscale PDF Online Free (Black and White PDF) | DocBit',
+    seoDescription:
+      'Convert color PDF to grayscale or black and white online free. Optimize your PDF for printing while preserving quality. Fast, secure, and processed entirely in your browser.',
+    keywords: [
+      'grayscale pdf',
+      'convert pdf to grayscale',
+      'black and white pdf',
+      'pdf to bw converter',
+      'make pdf grayscale free'
+    ],
+    faqs: [
+      { q: 'What is the difference between grayscale and black & white?', a: 'Grayscale uses different shades of gray to represent colors, while Black & White (Pure BW) uses only black and white pixels, which is best for high-contrast documents like text scans.' },
+      { q: 'Does grayscale conversion reduce file size?', a: 'Often yes! Removing color data can significantly reduce the file size, especially for documents with many color images.' },
+      { q: 'Is the conversion high quality?', a: 'Yes, DocBit preserves the text and image sharpness while converting colors to their equivalent luminence values.' }
+    ],
+    steps: [
+      { name: 'Upload PDF', text: 'Select the color PDF you want to convert.' },
+      { name: 'Choose Mode', text: 'Select "Grayscale" for shades of gray or "Pure B&W" for high contrast.' },
+      { name: 'Optional Settings', text: 'Choose printer-friendly optimization for better ink efficiency.' },
+      { name: 'Download', text: 'Download your converted grayscale PDF instantly.' }
+    ],
+    icon: <Palette className="w-6 h-6" />,
+    category: 'optimize',
+    href: '/tools/grayscale-pdf',
   },
 ];

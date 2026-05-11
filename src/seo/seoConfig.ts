@@ -55,18 +55,18 @@ export const SEO_CONFIG: Record<string, PageSEO> = {
     canonical: `${APP_DOMAIN}/tools/split-pdf`,
     ogImage: 'https://res.cloudinary.com/dlesei0kn/image/upload/v1778171812/split-pdf_nmlgsz.jpg',
   },
+  grayscalePdf: {
+    title: 'Grayscale PDF Online Free (Black & White)',
+    description: 'Convert color PDFs to grayscale or pure black and white online with DocBit. Fast, private, and secure browser-based document optimization.',
+    keywords: 'grayscale pdf, b&w pdf converter, black and white pdf, convert color pdf to gray, optimize pdf for printing',
+    canonical: `${APP_DOMAIN}/tools/grayscale-pdf`,
+    ogImage: GLOBAL_OG_IMAGE,
+  },
   contact: {
     title: 'Contact Us – Get in Touch with DocBit',
     description: 'Have questions, feedback, or need support? Contact the DocBit team directly. We are always here to help you with your document conversion needs.',
     keywords: 'contact docbit, pdf tools support, feedback, customer service',
     canonical: `${APP_DOMAIN}/contact`,
-    ogImage: GLOBAL_OG_IMAGE,
-  },
-  help: {
-    title: 'Help Center – How to Use DocBit PDF Tools',
-    description: 'Find answers to frequently asked questions about DocBit. Learn how to merge, split, and convert PDFs safely and for free.',
-    keywords: 'docbit help, pdf tool faq, how to use docbit, pdf support',
-    canonical: `${APP_DOMAIN}/help`,
     ogImage: GLOBAL_OG_IMAGE,
   },
 };

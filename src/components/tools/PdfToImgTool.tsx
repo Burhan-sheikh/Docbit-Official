@@ -37,6 +37,7 @@ import {
   getHowToSchema
 } from '../../seo/structuredData';
 import { getFAQSchema } from '../../utils/schema/faqSchema';
+import { TOOL_SEO_CONTENT } from '../../constants/toolSeoContent';
 
 // Configure pdfjs worker
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
@@ -61,9 +62,9 @@ export default function PdfToImgTool() {
   const [specificPages, setSpecificPages] = useState('');
   
   const [result, setResult] = useState<{ url: string; size: number; isZip: boolean } | null>(null);
-  const [previewImg, setPreviewImg] = useState<string | null>(null);
-  const [highResPreview, setHighResPreview] = useState<string | null>(null);
-  const [isRenderingPreview, setIsRenderingPreview] = useState(false);
+  const [viewerImg, setViewerImg] = useState<string | null>(null);
+  const [highResViewerImage, setHighResViewerImage] = useState<string | null>(null);
+  const [isRenderingViewer, setIsRenderingViewer] = useState(false);
 
   const blocker = useFileExitConfirm({ isDirty: !!file && !result });
 
@@ -113,11 +114,11 @@ export default function PdfToImgTool() {
     }
   };
 
-  const handlePreview = async (index: number) => {
+  const handleViewPage = async (index: number) => {
     if (!pdfProxy) return;
-    setPreviewImg(pages[index]?.dataUrl || '');
-    setHighResPreview(null);
-    setIsRenderingPreview(true);
+    setViewerImg(pages[index]?.dataUrl || '');
+    setHighResViewerImage(null);
+    setIsRenderingViewer(true);
 
     try {
       const page = await pdfProxy.getPage(index + 1);
@@ -128,12 +129,12 @@ export default function PdfToImgTool() {
         canvas.height = viewport.height;
         canvas.width = viewport.width;
         await page.render({ canvasContext: context, canvas, viewport }).promise;
-        setHighResPreview(canvas.toDataURL('image/jpeg', 0.9));
+        setHighResViewerImage(canvas.toDataURL('image/jpeg', 0.9));
       }
     } catch (e) {
-      console.error('High-res preview failed:', e);
+      console.error('High-res thumbnail generation failed:', e);
     } finally {
-      setIsRenderingPreview(false);
+      setIsRenderingViewer(false);
     }
   };
 
@@ -229,29 +230,7 @@ export default function PdfToImgTool() {
           onReset={() => { setFile(null); setPages([]); setResult(null); }}
         />
        ) : !file ? (
-        <>
-          <Dropzone onFilesSelected={handleFiles} isProcessing={isLoadingFile} label="Extract PDF Pages to Images" />
-          
-          <ToolInfo 
-            title="PDF to Image Converter"
-            steps={[
-              { title: "Upload PDF", desc: "Select the PDF file you want to convert into images." },
-              { title: "Configure Output", desc: "Choose your preferred image format (JPG or PNG) and specify which pages to extract." },
-              { title: "Download Images", desc: "Retrieve your high-resolution images instantly in a neatly organized ZIP file." }
-            ]}
-            benefits={[
-              { title: "Browser-Only Data", desc: "Your PDF never touches a server. All image rendering happens locally inside your browser sessions.", icon: <ShieldCheck className="w-8 h-8" /> },
-              { title: "High Resolution", desc: "We render PDF pages at 2x scale for sharp, professional-grade image quality without cloud lag.", icon: <Zap className="w-8 h-8" /> },
-              { title: "Privacy First", desc: "Extract specific pages or entire files securely. No data footprint is left on our infrastructure.", icon: <Globe className="w-8 h-8" /> }
-            ]}
-            faqs={tool.faqs || []}
-            relatedTools={TOOLS.filter(t => t.id !== 'pdf-to-img')}
-            seoContent={{
-              title: 'Securely convert PDF to JPG or PNG with local processing',
-              content: 'Transform your PDF pages into stunning images securely with DocBit. Our PDF to image converter supports high-resolution exports in both JPG and PNG formats, processed entirely within your browser for absolute privacy. Whether you need an image of a single page or the entire document, our tool delivers professional results without server uploads or account registrations.'
-            }}
-          />
-        </>
+        <Dropzone onFilesSelected={handleFiles} isProcessing={isLoadingFile} label="Extract PDF Pages to Images" />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
            <div className="lg:col-span-8 space-y-6">
@@ -278,7 +257,7 @@ export default function PdfToImgTool() {
                           layout
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          onClick={() => handlePreview(p.index)}
+                          onClick={() => handleViewPage(p.index)}
                           className="relative aspect-[1/1.414] bg-neutral-50 dark:bg-neutral-800 rounded-2xl overflow-hidden border border-neutral-100 dark:border-neutral-800 cursor-zoom-in hover:shadow-xl transition-all group ring-offset-2 ring-blue-500 hover:ring-2"
                         >
                            <img src={p.dataUrl} className="w-full h-full object-cover" />
@@ -296,7 +275,7 @@ export default function PdfToImgTool() {
               </div>
            </div>
 
-           <ImageViewer src={highResPreview || previewImg || ''} isOpen={!!previewImg} onClose={() => { setPreviewImg(null); setHighResPreview(null); }} />
+           <ImageViewer src={highResViewerImage || viewerImg || ''} isOpen={!!viewerImg} onClose={() => { setViewerImg(null); setHighResViewerImage(null); }} loading={isRenderingViewer} />
 
            <div className="lg:col-span-4 space-y-6">
               <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[32px] p-8 shadow-xl shadow-black/5 space-y-8">
@@ -395,9 +374,11 @@ export default function PdfToImgTool() {
         </div>
       )}
       <ToolContent 
+        toolId={tool.id}
         toolName="PDF to Image"
         toolType="Convert"
         description="Convert PDF pages into high-quality JPG or PNG images instantly. Our local engine ensures crystal-clear resolution without uploading your data."
+        longContent={TOOL_SEO_CONTENT.pdfToImg}
       />
 
       <NavigationConfirmModal 

@@ -15,7 +15,6 @@ import { SEO_CONFIG, SITE_NAME, APP_DOMAIN, THEME_COLOR, GLOBAL_OG_IMAGE } from 
 import { getSoftwareAppSchema, getWebApplicationSchema, getBreadcrumbSchema, getWebSiteSchema, getHowToSchema } from '../src/seo/structuredData';
 import { getFAQSchema } from '../src/utils/schema/faqSchema';
 import { TOOLS } from '../src/constants/tools';
-import { GUIDES } from '../src/constants/guides';
 
 const DIST_DIR = path.join(process.cwd(), 'dist');
 const TEMPLATE_PATH = path.join(DIST_DIR, 'index.html');
@@ -63,7 +62,6 @@ const routes: any[] = [
   { path: '/', config: SEO_CONFIG.home, type: 'home' },
   { path: '/about', config: SEO_CONFIG.about, type: 'page' },
   { path: '/contact', config: SEO_CONFIG.contact, type: 'page' },
-  { path: '/help', config: SEO_CONFIG.help, type: 'page' },
   { path: '/privacy', config: SEO_CONFIG.privacy || { title: `Privacy Policy | ${SITE_NAME}`, description: 'Our commitment to your data security.', canonical: `${APP_DOMAIN}/privacy`, ogImage: GLOBAL_OG_IMAGE }, type: 'page' },
   { path: '/terms', config: SEO_CONFIG.terms || { title: `Terms of Service | ${SITE_NAME}`, description: 'The rules for using our platform.', canonical: `${APP_DOMAIN}/terms`, ogImage: GLOBAL_OG_IMAGE }, type: 'page' },
 ];
@@ -90,38 +88,14 @@ TOOLS.forEach(tool => {
   });
 });
 
-// Add guide routes from GUIDES constant
-GUIDES.forEach(guide => {
-  routes.push({
-    path: guide.slug,
-    config: {
-      title: guide.title,
-      description: guide.description,
-      canonical: `${APP_DOMAIN}${guide.slug}`,
-      ogImage: GLOBAL_OG_IMAGE
-    },
-    type: 'guide',
-    guideData: guide
-  });
-});
-
 function generateSchemas(route: any) {
   const schemas: any[] = [];
-  const { config, type, toolData, guideData } = route;
+  const { config, type, toolData } = route;
 
   if (type === 'home') {
     schemas.push(getSoftwareAppSchema(config.description));
     schemas.push(getWebSiteSchema());
     schemas.push(getBreadcrumbSchema([{ name: 'Home', item: APP_DOMAIN }]));
-  } else if (type === 'guide' && guideData) {
-    schemas.push(getBreadcrumbSchema([
-      { name: 'Home', item: APP_DOMAIN },
-      { name: 'Help', item: `${APP_DOMAIN}/help` },
-      { name: guideData.title, item: config.canonical }
-    ]));
-    if (guideData.faqs) {
-      schemas.push(getFAQSchema(guideData.faqs));
-    }
   } else {
     // Breadcrumb for all non-home pages
     schemas.push(getBreadcrumbSchema([
@@ -230,11 +204,9 @@ ${routes.map(route => `  <url>
 
 const pagesRoutes = routes.filter(r => r.type === 'page' || r.type === 'home');
 const toolsRoutes = routes.filter(r => r.type === 'tool');
-const guidesRoutes = routes.filter(r => r.type === 'guide');
 
 fs.writeFileSync(path.join(DIST_DIR, 'sitemap-pages.xml'), generateSitemapXml(pagesRoutes));
 fs.writeFileSync(path.join(DIST_DIR, 'sitemap-tools.xml'), generateSitemapXml(toolsRoutes));
-fs.writeFileSync(path.join(DIST_DIR, 'sitemap-guides.xml'), generateSitemapXml(guidesRoutes));
 
 // Generate Sitemap Index
 const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
@@ -245,10 +217,6 @@ const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
   </sitemap>
   <sitemap>
     <loc>${APP_DOMAIN}/sitemap-tools.xml</loc>
-    <lastmod>${today}</lastmod>
-  </sitemap>
-  <sitemap>
-    <loc>${APP_DOMAIN}/sitemap-guides.xml</loc>
     <lastmod>${today}</lastmod>
   </sitemap>
 </sitemapindex>`;

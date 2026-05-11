@@ -50,16 +50,17 @@ export default function Footer({ variant = 'full' }: FooterProps) {
                 <li><Link to="/tools/split-pdf" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Split PDF</Link></li>
                 <li><Link to="/tools/image-to-pdf" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Img to PDF</Link></li>
                 <li><Link to="/tools/pdf-to-images" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">PDF to Img</Link></li>
+                <li><Link to="/tools/grayscale-pdf" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Grayscale PDF</Link></li>
               </ul>
             </div>
 
             <div className="space-y-6">
-              <h4 className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Legal & Help</h4>
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Legal & Transparency</h4>
               <ul className="space-y-4">
                 <li><Link to="/about" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Mission</Link></li>
-                <li><Link to="/help" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Help Center</Link></li>
-                <li><Link to="/privacy" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Privacy Policy</Link></li>
                 <li><Link to="/contact" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Contact</Link></li>
+                <li><Link to="/privacy" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Terms of Service</Link></li>
               </ul>
             </div>
           </div>
@@ -70,7 +71,7 @@ export default function Footer({ variant = 'full' }: FooterProps) {
           !isMinimal && "pt-8 border-t border-neutral-100 dark:border-neutral-900"
         )}>
           <div className="flex items-center gap-4 order-2 md:order-1">
-            <span className="text-[10px] font-black text-neutral-400 uppercase tracking-tight">© 2024 DocBit</span>
+            <span className="text-[10px] font-black text-neutral-400 uppercase tracking-tight">© 2026 DocBit</span>
             <div className="w-1 h-1 bg-neutral-200 dark:bg-neutral-800 rounded-full" />
             <div className="flex items-center gap-2 text-[10px] font-black text-blue-600 bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded-full uppercase tracking-tighter">
               <ShieldCheck className="w-3 h-3" />
@@ -82,8 +83,8 @@ export default function Footer({ variant = 'full' }: FooterProps) {
             {isMinimal ? (
               <>
                 <Link to="/about" className="text-[10px] font-black uppercase text-neutral-400 hover:text-blue-600 transition-colors tracking-widest">About</Link>
-                <Link to="/help" className="text-[10px] font-black uppercase text-neutral-400 hover:text-blue-600 transition-colors tracking-widest">Help</Link>
                 <Link to="/privacy" className="text-[10px] font-black uppercase text-neutral-400 hover:text-blue-600 transition-colors tracking-widest">Privacy</Link>
+                <Link to="/contact" className="text-[10px] font-black uppercase text-neutral-400 hover:text-blue-600 transition-colors tracking-widest">Contact</Link>
               </>
             ) : null}
           </div>

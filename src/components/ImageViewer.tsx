@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, ZoomIn, ZoomOut, Loader2 } from 'lucide-react';
 
 interface ImageViewerProps {
   src: string;
@@ -8,9 +8,10 @@ interface ImageViewerProps {
   onClose: () => void;
   alt?: string;
   rotation?: number;
+  loading?: boolean;
 }
 
-export function ImageViewer({ src, isOpen, onClose, alt, rotation = 0 }: ImageViewerProps) {
+export function ImageViewer({ src, isOpen, onClose, alt, rotation = 0, loading = false }: ImageViewerProps) {
   const [zoom, setZoom] = useState(1);
 
   useEffect(() => {
@@ -89,22 +90,29 @@ export function ImageViewer({ src, isOpen, onClose, alt, rotation = 0 }: ImageVi
 
             {/* Image Container */}
             <div className="relative group w-full h-full min-h-[200px] bg-neutral-900/50 rounded-[24px] md:rounded-[32px] shadow-[0_0_100px_rgba(0,0,0,0.5)] ring-1 ring-white/10 flex items-center justify-center p-4 md:p-8 overflow-hidden">
-              <div className="relative transition-all duration-500 flex items-center justify-center w-full h-full">
-                <motion.img
-                  src={src}
-                  alt={alt || "Image preview"}
-                  animate={{ 
-                    rotate: rotation,
-                    scale: ((rotation / 90) % 2 !== 0 ? 0.7 : 1) * zoom
-                  }}
-                  transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                  style={{
-                    maxWidth: '100%',
-                    maxHeight: '75vh',
-                  }}
-                  className="object-contain select-none shadow-2xl rounded-sm ring-1 ring-white/5"
-                />
-              </div>
+              {loading ? (
+                <div className="flex flex-col items-center gap-4">
+                  <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+                  <p className="text-[10px] font-black text-white/50 uppercase tracking-widest">Rendering High Res...</p>
+                </div>
+              ) : (
+                <div className="relative transition-all duration-500 flex items-center justify-center w-full h-full">
+                  <motion.img
+                    src={src}
+                    alt={alt || "Image preview"}
+                    animate={{ 
+                      rotate: rotation,
+                      scale: ((rotation / 90) % 2 !== 0 ? 0.7 : 1) * zoom
+                    }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '75vh',
+                    }}
+                    className="object-contain select-none shadow-2xl rounded-sm ring-1 ring-white/5"
+                  />
+                </div>
+              )}
               
               {/* Optional: Status indicator */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-black/60 backdrop-blur-xl px-4 py-2 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
