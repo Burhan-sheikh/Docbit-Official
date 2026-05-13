@@ -205,8 +205,17 @@ ${routes.map(route => `  <url>
 const pagesRoutes = routes.filter(r => r.type === 'page' || r.type === 'home');
 const toolsRoutes = routes.filter(r => r.type === 'tool');
 
-fs.writeFileSync(path.join(DIST_DIR, 'sitemap-pages.xml'), generateSitemapXml(pagesRoutes));
-fs.writeFileSync(path.join(DIST_DIR, 'sitemap-tools.xml'), generateSitemapXml(toolsRoutes));
+const PUBLIC_DIR = path.join(process.cwd(), 'public');
+const pagesXml = generateSitemapXml(pagesRoutes);
+const toolsXml = generateSitemapXml(toolsRoutes);
+
+// Write Split Sitemaps
+[DIST_DIR, PUBLIC_DIR].forEach(dir => {
+  if (fs.existsSync(dir)) {
+    fs.writeFileSync(path.join(dir, 'sitemap-pages.xml'), pagesXml);
+    fs.writeFileSync(path.join(dir, 'sitemap-tools.xml'), toolsXml);
+  }
+});
 
 // Generate Sitemap Index
 const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
@@ -221,7 +230,11 @@ const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
   </sitemap>
 </sitemapindex>`;
 
-fs.writeFileSync(path.join(DIST_DIR, 'sitemap.xml'), sitemapIndex);
-console.log('Split Sitemaps and Index generated!');
+[DIST_DIR, PUBLIC_DIR].forEach(dir => {
+  if (fs.existsSync(dir)) {
+    fs.writeFileSync(path.join(dir, 'sitemap.xml'), sitemapIndex);
+  }
+});
 
+console.log('Split Sitemaps and Index generated in dist/ and public/!');
 console.log('Static Generation Complete! Your dist/ directory is now SEO-ready.');
