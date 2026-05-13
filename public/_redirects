@@ -1,4 +1,6 @@
-/sitemap.xml  /sitemap.xml  200
-/robots.txt   /robots.txt   200
+/sitemap.xml       /sitemap.xml       200
+/sitemap-pages.xml /sitemap-pages.xml 200
+/sitemap-tools.xml /sitemap-tools.xml 200
+/robots.txt        /robots.txt        200
 
 /* /index.html 200
