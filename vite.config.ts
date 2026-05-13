@@ -18,6 +18,8 @@ export default defineConfig(({mode}) => {
 
           navigateFallbackDenylist: [
             /^\/sitemap\.xml$/,
+            /^\/sitemap-pages\.xml$/,
+            /^\/sitemap-tools\.xml$/,
             /^\/robots\.txt$/,
           ],
         },
