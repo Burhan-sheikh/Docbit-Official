@@ -2,6 +2,29 @@
   publish = "dist"
   command = "npm run build"
 
+# Allow sitemap files directly
+[[redirects]]
+  from = "/sitemap.xml"
+  to = "/sitemap.xml"
+  status = 200
+
+[[redirects]]
+  from = "/sitemap-pages.xml"
+  to = "/sitemap-pages.xml"
+  status = 200
+
+[[redirects]]
+  from = "/sitemap-tools.xml"
+  to = "/sitemap-tools.xml"
+  status = 200
+
+# Allow robots.txt directly
+[[redirects]]
+  from = "/robots.txt"
+  to = "/robots.txt"
+  status = 200
+
+# SPA fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"
