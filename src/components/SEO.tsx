@@ -25,7 +25,17 @@ export const SEO: React.FC<SEOProps> = ({
   noindex = false
 }) => {
   const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
-  const finalCanonical = canonical || APP_DOMAIN;
+  
+  // Robust canonical calculation
+  const getSafeCanonical = () => {
+    if (canonical) return canonical;
+    if (typeof window !== 'undefined') {
+      return window.location.origin + window.location.pathname.replace(/\/$/, "");
+    }
+    return APP_DOMAIN;
+  };
+
+  const finalCanonical = getSafeCanonical();
   const finalOgImage = ogImage || 'https://res.cloudinary.com/dlesei0kn/image/upload/v1778091011/og_docbit_cebbib.jpg';
 
   return (
