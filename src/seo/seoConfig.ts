@@ -17,7 +17,7 @@ export const SEO_CONFIG: Record<string, PageSEO> = {
     title: 'Free PDF Tools Online – Merge, Split & Convert PDFs',
     description: 'Use DocBit to merge PDF files, split documents, convert images into PDFs, and turn PDF pages into images. Fast online tools built for mobile and desktop users with no server uploads.',
     keywords: 'free pdf tools, merge pdf online, split pdf online, image to pdf converter, pdf to image converter, online pdf utility, free document tools india',
-    canonical: `${APP_DOMAIN}/`,
+    canonical: APP_DOMAIN,
     ogImage: GLOBAL_OG_IMAGE,
   },
   about: {
