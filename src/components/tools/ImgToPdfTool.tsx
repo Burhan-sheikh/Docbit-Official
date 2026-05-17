@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dropzone } from '../Dropzone';
 import { PDFDocument, PageSizes, rgb, StandardFonts } from 'pdf-lib';
 import { useFileExitConfirm } from '../../hooks/useFileExitConfirm';
@@ -16,7 +16,7 @@ import {
   Plus,
   Loader2,
   Wand2,
-  Pencil,
+  Settings2,
   Layout,
   Palette,
   Shield,
@@ -78,23 +78,15 @@ export default function ImgToPdfTool() {
   const [quality, setQuality] = useState<'high' | 'medium' | 'small'>('medium');
   const [spacing, setSpacing] = useState(0);
 
-  const [showOptions, setShowOptions] = useState(false);
   const [result, setResult] = useState<{ url: string; size: number } | null>(null);
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [viewerItem, setViewerItem] = useState<ImgData | null>(null);
 
   const blocker = useFileExitConfirm({ isDirty: images.length > 0 && !result });
 
-  useEffect(() => {
-    return () => {
-      images.forEach(img => URL.revokeObjectURL(img.thumbnail));
-      if (result) URL.revokeObjectURL(result.url);
-    };
-  }, []);
-
   const handleFiles = async (files: File[]) => {
     if (images.length >= MAX_FILES) {
-      alert(`Limit reached: Maximum of ${MAX_FILES} images allowed for browser-side processing.`);
+      alert(`Maximum of ${MAX_FILES} images allowed.`);
       return;
     }
 
@@ -102,7 +94,7 @@ export default function ImgToPdfTool() {
     const filesToProcess = files.slice(0, remainingSlots);
 
     if (files.length > remainingSlots) {
-      alert(`Batch limit: Only the first ${remainingSlots} images were added. (Max: ${MAX_FILES} per document)`);
+      alert(`Only the first ${remainingSlots} images were added (Limit: ${MAX_FILES}).`);
     }
 
     setIsAddingFiles(true);
@@ -172,45 +164,42 @@ export default function ImgToPdfTool() {
         const imgData = images[i];
         const img = new Image();
         img.src = imgData.thumbnail;
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+
+        const canvas = document.createElement('canvas');
+        const isSwapped = imgData.rotation === 90 || imgData.rotation === 270;
+        canvas.width = isSwapped ? img.naturalHeight : img.naturalWidth;
+        canvas.height = isSwapped ? img.naturalWidth : img.naturalHeight;
         
-        try {
-          await new Promise((resolve, reject) => {
-            img.onload = resolve;
-            img.onerror = () => reject(new Error(`Failed to load image: ${imgData.file.name}`));
-          });
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Canvas context failed');
+        
+        ctx.translate(canvas.width / 2, canvas.height / 2);
+        ctx.rotate((imgData.rotation * Math.PI) / 180);
+        ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
 
-          const canvas = document.createElement('canvas');
-          const isSwapped = imgData.rotation === 90 || imgData.rotation === 270;
-          canvas.width = isSwapped ? img.naturalHeight : img.naturalWidth;
-          canvas.height = isSwapped ? img.naturalWidth : img.naturalHeight;
-          
-          const ctx = canvas.getContext('2d');
-          if (!ctx) throw new Error('System Error: Canvas context failure');
-          
-          ctx.translate(canvas.width / 2, canvas.height / 2);
-          ctx.rotate((imgData.rotation * Math.PI) / 180);
-          ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
+        const imgBytes = await new Promise<ArrayBuffer>((resolve, reject) => {
+          try {
+            canvas.toBlob((blob) => {
+              if (blob) {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as ArrayBuffer);
+                reader.onerror = () => reject(new Error('FileReader failed'));
+                reader.readAsArrayBuffer(blob);
+              } else {
+                reject(new Error('Canvas toBlob failed'));
+              }
+            }, 'image/jpeg', qualityValue);
+          } catch (e) {
+            reject(e);
+          }
+        });
 
-          const imgBytes = await new Promise<ArrayBuffer>((resolve, reject) => {
-            try {
-              canvas.toBlob((blob) => {
-                if (blob) {
-                  const reader = new FileReader();
-                  reader.onload = () => resolve(reader.result as ArrayBuffer);
-                  reader.onerror = () => reject(new Error('FileReader: Aborted'));
-                  reader.readAsArrayBuffer(blob);
-                } else {
-                  reject(new Error('Canvas: Optimization failed'));
-                }
-              }, 'image/jpeg', qualityValue);
-            } catch (e) {
-              reject(e);
-            }
-          });
-
-          setProcessingStage(`Optimizing ${i + 1}/${images.length}...`);
-          const embeddedImg = await pdfDoc.embedJpg(imgBytes);
-          const imgDims = embeddedImg.scale(1);
+        const embeddedImg = await pdfDoc.embedJpg(imgBytes);
+        const imgDims = embeddedImg.scale(1);
 
         // Determine Page Size
         let pWidth, pHeight;
@@ -277,11 +266,7 @@ export default function ImgToPdfTool() {
           width: drawWidth,
           height: drawHeight,
         });
-      } catch (err: any) {
-        console.error(`Error processing image ${i + 1}:`, err);
-        throw new Error(err.message || 'Image processing failed');
       }
-    }
 
       setProcessingStage('Finalizing PDF...');
       setProgress(100);
@@ -291,9 +276,9 @@ export default function ImgToPdfTool() {
       const url = URL.createObjectURL(blob);
       setResult({ url, size: blob.size });
       setIsDownloaded(false);
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
-      alert(`Conversion failed: ${e.message}`);
+      alert('Error during conversion.');
     } finally {
       setIsProcessing(false);
       setProgress(0);
@@ -337,7 +322,7 @@ export default function ImgToPdfTool() {
             onDownload={handleDownload} 
             isDownloaded={isDownloaded}
             onBack={() => setResult(null)}
-            onReset={() => { setImages([]); setResult(null); setIsDownloaded(false); setShowOptions(false); }} 
+            onReset={() => { setImages([]); setResult(null); setIsDownloaded(false); }} 
           />
         )}
       </AnimatePresence>
@@ -360,197 +345,172 @@ export default function ImgToPdfTool() {
               </h1>
               <p className="text-sm font-bold uppercase tracking-widest text-neutral-400 font-mono italic">Sequential Composition Engine</p>
             </div>
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setShowOptions(!showOptions)}
-                className={cn(
-                  "flex items-center justify-center gap-2 px-6 py-3 rounded-2xl border-2 transition-all shadow-md active:scale-95 text-xs font-black uppercase italic tracking-tighter shrink-0",
-                  showOptions 
-                    ? "bg-neutral-100 border-neutral-300 dark:bg-neutral-800 dark:border-neutral-700 text-blue-600" 
-                    : "bg-white border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800 text-neutral-400 hover:border-neutral-300"
-                )}
-              >
-                <Pencil className="w-4 h-4" />
-                {showOptions ? 'HIDE OPTIONS' : 'OPTIONS'}
-              </button>
-              <label className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl transition-all shadow-lg shadow-blue-500/20 cursor-pointer active:scale-95 text-sm uppercase italic tracking-tighter shrink-0">
-                <Plus className="w-5 h-5" />
-                ADD MORE
-                <input type="file" multiple className="hidden" accept="image/*" onChange={(e) => e.target.files && handleFiles(Array.from(e.target.files))} />
-              </label>
-            </div>
+            <label className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl transition-all shadow-lg shadow-blue-500/20 cursor-pointer active:scale-95 text-sm uppercase italic tracking-tighter shrink-0">
+              <Plus className="w-5 h-5" />
+              ADD MORE
+              <input type="file" multiple className="hidden" accept="image/*" onChange={(e) => e.target.files && handleFiles(Array.from(e.target.files))} />
+            </label>
           </div>
 
-          <AnimatePresence>
-            {showOptions && (
-              <motion.div 
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                {/* Layout and Advanced Options - Wide Section at Top */}
-                <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[40px] p-8 shadow-xl shadow-black/5 space-y-10 not-italic mb-8">
-                  <div className="grid grid-cols-1 gap-8 items-start">
-                    <div className="flex flex-col h-full space-y-8">
-                      <div className="flex items-center gap-2 text-blue-600">
-                        <Layout className="w-5 h-5" />
-                        <h3 className="text-xs font-black tracking-widest uppercase">Layout Configuration</h3>
+          {/* Layout and Advanced Options - Wide Section at Top */}
+          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[40px] p-8 shadow-xl shadow-black/5 space-y-10 not-italic">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+              <div className="xl:col-span-8 flex flex-col h-full space-y-8">
+                <div className="flex items-center gap-2 text-blue-600">
+                  <Layout className="w-5 h-5" />
+                  <h3 className="text-xs font-black tracking-widest uppercase">Layout Configuration</h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Left Sub-Column */}
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                       <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Page Format</p>
+                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                         {['A4', 'A3', 'Letter', 'Custom'].map(s => (
+                           <button
+                             key={s}
+                             onClick={() => setPageSize(s as any)}
+                             className={cn(
+                               "py-2.5 rounded-xl border-2 font-black text-[10px] uppercase transition-all shadow-sm",
+                               pageSize === s ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-600" : "border-neutral-100 dark:border-neutral-800 text-neutral-400 hover:border-neutral-200"
+                             )}
+                           >{s}</button>
+                         ))}
+                       </div>
+                    </div>
+
+                    {pageSize === 'Custom' ? (
+                      <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-1 duration-300">
+                         <div className="space-y-1.5">
+                            <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">Width (pt)</p>
+                            <input type="number" value={customWidth} onChange={(e) => setCustomWidth(Number(e.target.value))} className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 rounded-xl text-sm font-black border-2 border-transparent focus:border-blue-500 transition-all outline-none" />
+                         </div>
+                         <div className="space-y-1.5">
+                            <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">Height (pt)</p>
+                            <input type="number" value={customHeight} onChange={(e) => setCustomHeight(Number(e.target.value))} className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 rounded-xl text-sm font-black border-2 border-transparent focus:border-blue-500 transition-all outline-none" />
+                         </div>
                       </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Left Sub-Column */}
-                        <div className="space-y-6">
-                          <div className="space-y-3">
-                             <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Page Format</p>
-                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                               {['A4', 'A3', 'Letter', 'Custom'].map(s => (
-                                 <button
-                                   key={s}
-                                   onClick={() => setPageSize(s as any)}
-                                   className={cn(
-                                     "py-2.5 rounded-xl border-2 font-black text-[10px] uppercase transition-all shadow-sm",
-                                     pageSize === s ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-600" : "border-neutral-100 dark:border-neutral-800 text-neutral-400 hover:border-neutral-200"
-                                   )}
-                                 >{s}</button>
-                               ))}
-                             </div>
-                          </div>
-
-                          {pageSize === 'Custom' ? (
-                            <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-1 duration-300">
-                               <div className="space-y-1.5">
-                                  <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">Width (pt)</p>
-                                  <input type="number" value={customWidth} onChange={(e) => setCustomWidth(Number(e.target.value))} className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 rounded-xl text-sm font-black border-2 border-transparent focus:border-blue-500 transition-all outline-none" />
-                               </div>
-                               <div className="space-y-1.5">
-                                  <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">Height (pt)</p>
-                                  <input type="number" value={customHeight} onChange={(e) => setCustomHeight(Number(e.target.value))} className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 rounded-xl text-sm font-black border-2 border-transparent focus:border-blue-500 transition-all outline-none" />
-                               </div>
-                            </div>
-                          ) : (
-                            <div className="space-y-3">
-                               <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Orientation</p>
-                               <div className="grid grid-cols-2 gap-2">
-                                 {['portrait', 'landscape'].map(o => (
-                                   <button
-                                     key={o}
-                                     onClick={() => setOrientation(o as Orientation)}
-                                     className={cn(
-                                       "py-2.5 rounded-xl border-2 font-black text-[10px] uppercase transition-all shadow-sm",
-                                       orientation === o ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-600" : "border-neutral-100 dark:border-neutral-800 text-neutral-400 hover:border-neutral-200"
-                                     )}
-                                   >{o}</button>
-                                 ))}
-                               </div>
-                            </div>
-                          )}
-                          
-                          <div className="space-y-3">
-                             <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Background</p>
-                             <button 
-                               onClick={() => setIsColorPickerOpen(true)}
-                               className="w-full flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800 rounded-2xl border-2 border-transparent hover:border-blue-500 transition-all group"
-                             >
-                               <div className="flex items-center gap-4">
-                                 <div className="w-10 h-10 rounded-xl shadow-lg border border-white/20" style={{ backgroundColor: bgColor }} />
-                                 <span className="text-xs font-black uppercase text-neutral-900 dark:text-white">{bgColor}</span>
-                               </div>
-                               <Palette className="w-4 h-4 text-neutral-400 group-hover:text-blue-600 transition-colors" />
-                             </button>
-                          </div>
-                        </div>
-
-                        {/* Right Sub-Column */}
-                        <div className="space-y-6">
-                          <div className="space-y-3">
-                            <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Fit Algorithm</p>
-                            <div className="grid grid-cols-3 gap-2">
-                              {[
-                                { id: 'fit', label: 'Contain', icon: <Minimize2 className="w-4 h-4 text-blue-500" /> },
-                                { id: 'fill', label: 'Cover', icon: <Maximize2 className="w-4 h-4 text-purple-500" /> },
-                                { id: 'stretch', label: 'Warp', icon: <StretchHorizontal className="w-4 h-4 text-orange-500" /> }
-                              ].map(m => (
-                                <button
-                                  key={m.id}
-                                  onClick={() => setFitMode(m.id as FitMode)}
-                                  className={cn(
-                                    "flex flex-col items-center justify-center gap-2 py-4 rounded-xl border-2 transition-all shadow-sm",
-                                    fitMode === m.id ? "border-current bg-current/5" : "border-neutral-100 dark:border-neutral-800 text-neutral-400 hover:border-neutral-200"
-                                  )}
-                                  style={{ color: fitMode === m.id ? (m.id === 'fit' ? '#2563eb' : m.id === 'fill' ? '#9333ea' : '#ea580c') : undefined }}
-                                >
-                                  {m.icon}
-                                  <span className="text-[8px] font-black uppercase tracking-widest">{m.label}</span>
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="space-y-3">
-                             <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Margins (px)</p>
-                             <div className="grid grid-cols-2 gap-3">
-                                <div className="relative">
-                                   <input type="number" value={margin.top} onChange={(e) => setMargin(m => ({ ...m, top: Number(e.target.value), bottom: Number(e.target.value) }))} className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 rounded-xl text-sm font-black border-2 border-transparent focus:border-blue-500" />
-                                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-neutral-300 uppercase">Y-Axis</span>
-                                </div>
-                                <div className="relative">
-                                   <input type="number" value={margin.left} onChange={(e) => setMargin(m => ({ ...m, left: Number(e.target.value), right: Number(e.target.value) }))} className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 rounded-xl text-sm font-black border-2 border-transparent focus:border-blue-500" />
-                                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-neutral-300 uppercase">X-Axis</span>
-                                </div>
-                             </div>
-                          </div>
-
-                          <div className="space-y-3">
-                             <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Image Fidelity</p>
-                             <div className="flex gap-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700">
-                                {['small', 'medium', 'high'].map(q => (
-                                  <button
-                                    key={q}
-                                    onClick={() => setQuality(q as any)}
-                                    className={cn(
-                                      "flex-1 py-2 rounded-lg font-black text-[9px] uppercase transition-all",
-                                      quality === q ? "bg-white dark:bg-neutral-700 text-blue-600 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
-                                    )}
-                                  >{q}</button>
-                                ))}
-                             </div>
-                          </div>
-                        </div>
+                    ) : (
+                      <div className="space-y-3">
+                         <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Orientation</p>
+                         <div className="grid grid-cols-2 gap-2">
+                           {['portrait', 'landscape'].map(o => (
+                             <button
+                               key={o}
+                               onClick={() => setOrientation(o as Orientation)}
+                               className={cn(
+                                 "py-2.5 rounded-xl border-2 font-black text-[10px] uppercase transition-all shadow-sm",
+                                 orientation === o ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-600" : "border-neutral-100 dark:border-neutral-800 text-neutral-400 hover:border-neutral-200"
+                               )}
+                             >{o}</button>
+                           ))}
+                         </div>
                       </div>
+                    )}
+                    
+                    <div className="space-y-3">
+                       <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Background</p>
+                       <button 
+                         onClick={() => setIsColorPickerOpen(true)}
+                         className="w-full flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800 rounded-2xl border-2 border-transparent hover:border-blue-500 transition-all group"
+                       >
+                         <div className="flex items-center gap-4">
+                           <div className="w-10 h-10 rounded-xl shadow-lg border border-white/20" style={{ backgroundColor: bgColor }} />
+                           <span className="text-xs font-black uppercase text-neutral-900 dark:text-white">{bgColor}</span>
+                         </div>
+                         <Palette className="w-4 h-4 text-neutral-400 group-hover:text-blue-600 transition-colors" />
+                       </button>
+                    </div>
+                  </div>
+
+                  {/* Right Sub-Column */}
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Fit Algorithm</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { id: 'fit', label: 'Contain', icon: <Minimize2 className="w-4 h-4 text-blue-500" /> },
+                          { id: 'fill', label: 'Cover', icon: <Maximize2 className="w-4 h-4 text-purple-500" /> },
+                          { id: 'stretch', label: 'Warp', icon: <StretchHorizontal className="w-4 h-4 text-orange-500" /> }
+                        ].map(m => (
+                          <button
+                            key={m.id}
+                            onClick={() => setFitMode(m.id as FitMode)}
+                            className={cn(
+                              "flex flex-col items-center justify-center gap-2 py-4 rounded-xl border-2 transition-all shadow-sm",
+                              fitMode === m.id ? "border-current bg-current/5" : "border-neutral-100 dark:border-neutral-800 text-neutral-400 hover:border-neutral-200"
+                            )}
+                            style={{ color: fitMode === m.id ? (m.id === 'fit' ? '#2563eb' : m.id === 'fill' ? '#9333ea' : '#ea580c') : undefined }}
+                          >
+                            {m.icon}
+                            <span className="text-[8px] font-black uppercase tracking-widest">{m.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                       <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Margins (px)</p>
+                       <div className="grid grid-cols-2 gap-3">
+                          <div className="relative">
+                             <input type="number" value={margin.top} onChange={(e) => setMargin(m => ({ ...m, top: Number(e.target.value), bottom: Number(e.target.value) }))} className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 rounded-xl text-sm font-black border-2 border-transparent focus:border-blue-500" />
+                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-neutral-300 uppercase">Y-Axis</span>
+                          </div>
+                          <div className="relative">
+                             <input type="number" value={margin.left} onChange={(e) => setMargin(m => ({ ...m, left: Number(e.target.value), right: Number(e.target.value) }))} className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 rounded-xl text-sm font-black border-2 border-transparent focus:border-blue-500" />
+                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] font-black text-neutral-300 uppercase">X-Axis</span>
+                          </div>
+                       </div>
+                    </div>
+
+                    <div className="space-y-3">
+                       <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Image Fidelity</p>
+                       <div className="flex gap-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700">
+                          {['small', 'medium', 'high'].map(q => (
+                            <button
+                              key={q}
+                              onClick={() => setQuality(q as any)}
+                              className={cn(
+                                "flex-1 py-2 rounded-lg font-black text-[9px] uppercase transition-all",
+                                quality === q ? "bg-white dark:bg-neutral-700 text-blue-600 shadow-sm" : "text-neutral-400 hover:text-neutral-600"
+                              )}
+                            >{q}</button>
+                          ))}
+                       </div>
                     </div>
                   </div>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+              </div>
 
-          <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[40px] p-8 shadow-xl shadow-black/5 not-italic">
-            <div className="space-y-6 max-w-2xl mx-auto">
-              {isProcessing && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{processingStage}</span>
-                    <span className="text-[10px] font-black text-blue-600">{progress}%</span>
-                  </div>
-                  <div className="h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-blue-600" />
+              <div className="xl:col-span-4 h-full border-t xl:border-t-0 xl:border-l border-neutral-100 dark:border-neutral-800 pt-8 xl:pt-0 xl:pl-8 flex flex-col justify-center">
+                <div className="space-y-6">
+                  {isProcessing && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase text-blue-600 tracking-widest">{processingStage}</span>
+                        <span className="text-[10px] font-black text-blue-600">{progress}%</span>
+                      </div>
+                      <div className="h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-blue-600" />
+                      </div>
+                    </div>
+                  )}
+                  <button 
+                    onClick={convertToPdf}
+                    disabled={isProcessing}
+                    className="group w-full py-6 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black rounded-[24px] shadow-2xl shadow-blue-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                  >
+                    {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Wand2 className="w-6 h-6 transition-transform group-hover:scale-110" />}
+                    <span className="text-xl tracking-tight uppercase italic">{isProcessing ? 'COMPILING...' : 'EXPORT TO PDF'}</span>
+                  </button>
+                  <div className="flex flex-col items-center gap-3">
+                     <div className="flex items-center justify-center gap-2 text-[8px] font-black uppercase text-neutral-400 tracking-[0.2em]">
+                       <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />
+                       Safe Sandbox Processing
+                     </div>
                   </div>
                 </div>
-              )}
-              <button 
-                onClick={convertToPdf}
-                disabled={isProcessing}
-                className="group w-full py-6 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black rounded-[24px] shadow-2xl shadow-blue-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
-              >
-                {isProcessing ? <Loader2 className="w-6 h-6 animate-spin" /> : <Wand2 className="w-6 h-6 transition-transform group-hover:scale-110" />}
-                <span className="text-xl tracking-tight uppercase italic">{isProcessing ? 'COMPILING...' : 'EXPORT TO PDF'}</span>
-              </button>
-              <div className="flex flex-col items-center gap-3">
-                 <div className="flex items-center justify-center gap-2 text-[8px] font-black uppercase text-neutral-400 tracking-[0.2em]">
-                   <ShieldCheck className="w-3.5 h-3.5 text-blue-500" />
-                   Safe Sandbox Processing
-                 </div>
               </div>
             </div>
           </div>
