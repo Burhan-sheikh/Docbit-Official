@@ -5,21 +5,7 @@ import * as pdfjs from 'pdfjs-dist';
 import { useFileExitConfirm } from '../../hooks/useFileExitConfirm';
 import { useConversionTracker } from '../../hooks/useConversionTracker';
 import { NavigationConfirmModal } from '../NavigationConfirmModal';
-import { 
-  Palette, 
-  Download, 
-  Loader2,
-  Settings2,
-  FileText,
-  Shield,
-  LayoutGrid,
-  Check,
-  Printer,
-  Layers,
-  Plus,
-  X,
-  ShieldCheck
-} from 'lucide-react';
+import { Palette, Download, Loader as Loader2, Settings2, FileText, Shield, LayoutGrid, Check, Printer, Layers, Plus, X, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { readFileAsArrayBuffer, cn, formatBytes } from '../../lib/utils';
 import { DownloadResult } from '../DownloadResult';

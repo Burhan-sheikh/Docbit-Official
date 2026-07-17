@@ -4,24 +4,7 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { useFileExitConfirm } from '../../hooks/useFileExitConfirm';
 import { useConversionTracker } from '../../hooks/useConversionTracker';
 import { NavigationConfirmModal } from '../NavigationConfirmModal';
-import { 
-  Trash2, 
-  ArrowUp, 
-  ArrowDown, 
-  Download, 
-  Loader2, 
-  Wand2,
-  FileText, 
-  Plus, 
-  Settings2,
-  Combine, 
-  Shield, 
-  Maximize, 
-  Zap,
-  Square,
-  ShieldCheck,
-  Globe
-} from 'lucide-react';
+import { Trash2, ArrowUp, ArrowDown, Download, Loader as Loader2, Wand as Wand2, FileText, Plus, Settings2, Combine, Shield, Maximize, Zap, Square, ShieldCheck, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { readFileAsArrayBuffer, cn, formatBytes } from '../../lib/utils';
 import { DownloadResult } from '../DownloadResult';

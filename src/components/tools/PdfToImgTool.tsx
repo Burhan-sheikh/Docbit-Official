@@ -5,28 +5,7 @@ import * as pdfjs from 'pdfjs-dist';
 import { useFileExitConfirm } from '../../hooks/useFileExitConfirm';
 import { useConversionTracker } from '../../hooks/useConversionTracker';
 import { NavigationConfirmModal } from '../NavigationConfirmModal';
-import { 
-  Download, 
-  Loader2, 
-  Wand2,
-  Shield, 
-  Files,
-  Settings2,
-  FileCheck,
-  CheckCircle2,
-  Archive,
-  Menu,
-  X,
-  Layers,
-  Search,
-  FileText,
-  Plus,
-  LayoutGrid,
-  Check,
-  Scissors,
-  AlertCircle,
-  FileBox
-} from 'lucide-react';
+import { Download, Loader as Loader2, Wand as Wand2, Shield, Files, Settings2, FileCheck, CircleCheck as CheckCircle2, Archive, Menu, X, Layers, Search, FileText, Plus, LayoutGrid, Check, Scissors, CircleAlert as AlertCircle, FileBox } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { readFileAsArrayBuffer, cn, formatBytes } from '../../lib/utils';
 import JSZip from 'jszip';

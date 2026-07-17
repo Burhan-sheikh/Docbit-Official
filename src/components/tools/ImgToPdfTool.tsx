@@ -4,28 +4,7 @@ import { PDFDocument, PageSizes, rgb, StandardFonts } from 'pdf-lib';
 import { useFileExitConfirm } from '../../hooks/useFileExitConfirm';
 import { useConversionTracker } from '../../hooks/useConversionTracker';
 import { NavigationConfirmModal } from '../NavigationConfirmModal';
-import { 
-  FileImage, 
-  Download, 
-  ArrowUp,
-  ArrowDown,
-  Trash2,
-  Maximize2,
-  Minimize2,
-  StretchHorizontal,
-  RotateCw,
-  Plus,
-  Loader2,
-  Wand2,
-  Settings2,
-  Layout,
-  Palette,
-  Shield,
-  ShieldCheck,
-  Zap,
-  Globe,
-  Image as ImageIcon
-} from 'lucide-react';
+import { FileImage, Download, ArrowUp, ArrowDown, Trash2, Maximize2, Minimize2, StretchHorizontal, RotateCw, Plus, Loader as Loader2, Wand as Wand2, Settings2, LayoutGrid as Layout, Palette, Shield, ShieldCheck, Zap, Globe, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { readFileAsArrayBuffer, cn, formatBytes } from '../../lib/utils';
 import { DownloadResult } from '../DownloadResult';
