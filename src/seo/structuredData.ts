@@ -79,3 +79,13 @@ export const getHowToSchema = (name: string, description: string, steps: { name:
     }))
   };
 };
+
+export const getCollectionPageSchema = (name: string, description: string, url: string) => {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": name,
+    "description": description,
+    "url": url
+  };
+};

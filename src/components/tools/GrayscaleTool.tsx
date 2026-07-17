@@ -3,6 +3,7 @@ import { Dropzone } from '../Dropzone';
 import { PDFDocument } from 'pdf-lib';
 import * as pdfjs from 'pdfjs-dist';
 import { useFileExitConfirm } from '../../hooks/useFileExitConfirm';
+import { useConversionTracker } from '../../hooks/useConversionTracker';
 import { NavigationConfirmModal } from '../NavigationConfirmModal';
 import { 
   Palette, 
@@ -234,6 +235,8 @@ export default function GrayscaleTool() {
     }
   };
 
+  const track = useConversionTracker();
+
   const handleDownload = () => {
     if (!result) return;
     const link = document.createElement('a');
@@ -241,6 +244,15 @@ export default function GrayscaleTool() {
     link.download = `grayscale_${file?.name}`;
     link.click();
     setIsDownloaded(true);
+    track({
+      toolId: tool.id,
+      toolName: tool.name,
+      filename: file?.name,
+      outputType: 'pdf',
+      fileSize: result.size,
+      success: true,
+      processingMethod: 'local',
+    });
   };
 
   return (

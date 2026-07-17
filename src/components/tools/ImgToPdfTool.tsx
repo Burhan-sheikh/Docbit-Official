@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Dropzone } from '../Dropzone';
 import { PDFDocument, PageSizes, rgb, StandardFonts } from 'pdf-lib';
 import { useFileExitConfirm } from '../../hooks/useFileExitConfirm';
+import { useConversionTracker } from '../../hooks/useConversionTracker';
 import { NavigationConfirmModal } from '../NavigationConfirmModal';
 import { 
   FileImage, 
@@ -286,6 +287,8 @@ export default function ImgToPdfTool() {
     }
   };
 
+  const track = useConversionTracker();
+
   const handleDownload = () => {
     if (!result) return;
     const link = document.createElement('a');
@@ -293,6 +296,15 @@ export default function ImgToPdfTool() {
     link.download = `docbit_images_${new Date().getTime()}.pdf`;
     link.click();
     setIsDownloaded(true);
+    track({
+      toolId: tool.id,
+      toolName: tool.name,
+      filename: `docbit_images_${images.length}_images.pdf`,
+      outputType: 'pdf',
+      fileSize: result.size,
+      success: true,
+      processingMethod: 'local',
+    });
   };
 
   return (

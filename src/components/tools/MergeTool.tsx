@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Dropzone } from '../Dropzone';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { useFileExitConfirm } from '../../hooks/useFileExitConfirm';
+import { useConversionTracker } from '../../hooks/useConversionTracker';
 import { NavigationConfirmModal } from '../NavigationConfirmModal';
 import { 
   Trash2, 
@@ -154,6 +155,8 @@ export default function MergeTool() {
     }
   };
 
+  const track = useConversionTracker();
+
   const handleDownload = () => {
     if (!result) return;
     const link = document.createElement('a');
@@ -161,6 +164,15 @@ export default function MergeTool() {
     link.download = 'merged.pdf';
     link.click();
     setIsDownloaded(true);
+    track({
+      toolId: tool.id,
+      toolName: tool.name,
+      filename: 'merged.pdf',
+      outputType: 'pdf',
+      fileSize: result.size,
+      success: true,
+      processingMethod: 'local',
+    });
   };
 
   return (

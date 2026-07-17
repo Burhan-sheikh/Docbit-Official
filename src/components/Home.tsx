@@ -169,10 +169,12 @@ export function Home() {
           <div className="flex flex-wrap gap-3">
             {CATEGORIES.map((cat) => {
               const count = getToolsByCategory(cat.id).length;
-              if (count === 0 && !TOOL_REGISTRY.some((t) => t.category === cat.id && t.comingSoon)) return null;
+              const totalInCat = TOOL_REGISTRY.filter((t) => t.category === cat.id).length;
+              if (totalInCat === 0) return null;
               return (
-                <button
+                <Link
                   key={cat.id}
+                  to={`/category/${cat.id}`}
                   onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
                   className={cn(
                     'flex items-center gap-2 px-5 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all',
@@ -187,7 +189,7 @@ export function Home() {
                     'text-[9px] px-1.5 py-0.5 rounded-full',
                     activeCategory === cat.id ? 'bg-white/20' : 'bg-neutral-100 dark:bg-neutral-800'
                   )}>{count}</span>
-                </button>
+                </Link>
               );
             })}
           </div>

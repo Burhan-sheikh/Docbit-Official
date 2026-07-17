@@ -15,6 +15,8 @@ import { SEO_CONFIG, SITE_NAME, APP_DOMAIN, THEME_COLOR, GLOBAL_OG_IMAGE } from 
 import { getSoftwareAppSchema, getWebApplicationSchema, getBreadcrumbSchema, getWebSiteSchema, getHowToSchema } from '../src/seo/structuredData';
 import { getFAQSchema } from '../src/utils/schema/faqSchema';
 import { TOOL_REGISTRY } from '../src/tools/registry';
+import { CATEGORIES } from '../src/tools/categories';
+import { getCollectionPageSchema } from '../src/seo/structuredData';
 
 const DIST_DIR = path.join(process.cwd(), 'dist');
 const TEMPLATE_PATH = path.join(DIST_DIR, 'index.html');
@@ -86,6 +88,22 @@ TOOL_REGISTRY.forEach(tool => {
   });
 });
 
+// Add category routes
+CATEGORIES.forEach(cat => {
+  const catPath = `/category/${cat.id}`;
+  routes.push({
+    path: catPath,
+    config: {
+      title: `${cat.name} Tools Online Free | ${SITE_NAME}`,
+      description: `${cat.description}. Free ${cat.name.toLowerCase()} tools available on DocBit — all processed locally in your browser.`,
+      keywords: `${cat.name.toLowerCase()} tools, free ${cat.name.toLowerCase()} converter`,
+      canonical: `${APP_DOMAIN}${catPath}`,
+      ogImage: GLOBAL_OG_IMAGE
+    },
+    type: 'category'
+  });
+});
+
 function generateSchemas(route: any) {
   const schemas: any[] = [];
   const { config, type, toolData } = route;
@@ -109,6 +127,10 @@ function generateSchemas(route: any) {
       if (toolData.steps) {
         schemas.push(getHowToSchema(toolData.name, toolData.description, toolData.steps));
       }
+    }
+
+    if (type === 'category') {
+      schemas.push(getCollectionPageSchema(config.title, config.description, config.canonical));
     }
   }
 
@@ -202,16 +224,19 @@ ${routes.map(route => `  <url>
 
 const pagesRoutes = routes.filter(r => r.type === 'page' || r.type === 'home');
 const toolsRoutes = routes.filter(r => r.type === 'tool');
+const categoryRoutes = routes.filter(r => r.type === 'category');
 
 const PUBLIC_DIR = path.join(process.cwd(), 'public');
 const pagesXml = generateSitemapXml(pagesRoutes);
 const toolsXml = generateSitemapXml(toolsRoutes);
+const categoriesXml = generateSitemapXml(categoryRoutes);
 
 // Write Split Sitemaps
 [DIST_DIR, PUBLIC_DIR].forEach(dir => {
   if (fs.existsSync(dir)) {
     fs.writeFileSync(path.join(dir, 'sitemap-pages.xml'), pagesXml);
     fs.writeFileSync(path.join(dir, 'sitemap-tools.xml'), toolsXml);
+    fs.writeFileSync(path.join(dir, 'sitemap-categories.xml'), categoriesXml);
   }
 });
 
@@ -224,6 +249,10 @@ const sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
   </sitemap>
   <sitemap>
     <loc>${APP_DOMAIN}/sitemap-tools.xml</loc>
+    <lastmod>${today}</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>${APP_DOMAIN}/sitemap-categories.xml</loc>
     <lastmod>${today}</lastmod>
   </sitemap>
 </sitemapindex>`;
