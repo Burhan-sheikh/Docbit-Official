@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { motion, AnimatePresence } from 'motion/react';
-import { FileImage, Scissors, FileDown, Menu, Home as HomeIcon, Combine, Image as ImageIcon } from 'lucide-react';
+import { Home as HomeIcon, LayoutDashboard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import Offline from './Offline';
 import Footer from './Footer';
+import { getPopularTools } from '../tools/registry';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,11 +19,15 @@ export function Layout({ children, activeToolName, onReset }: LayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const location = useLocation();
 
+  const popularTools = getPopularTools().slice(0, 3);
   const navItems = [
-    { label: 'Img ➔ PDF', icon: <FileImage className="w-5 h-5" />, href: '/tools/image-to-pdf' },
-    { label: 'PDF ➔ Img', icon: <ImageIcon className="w-5 h-5" />, href: '/tools/pdf-to-images' },
-    { label: 'Merge', icon: <Combine className="w-5 h-5" />, href: '/tools/merge-pdf' },
-    { label: 'Split', icon: <Scissors className="w-5 h-5" />, href: '/tools/split-pdf' },
+    { label: 'Home', icon: <HomeIcon className="w-5 h-5" />, href: '/' },
+    ...popularTools.map((t) => ({
+      label: t.name.split(' ')[0],
+      icon: <t.icon className="w-5 h-5" />,
+      href: `/tools/${t.slug}`,
+    })),
+    { label: 'Account', icon: <LayoutDashboard className="w-5 h-5" />, href: '/dashboard' },
   ];
 
   return (

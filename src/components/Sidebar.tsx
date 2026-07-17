@@ -1,8 +1,8 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { TOOLS } from '../constants/tools';
+import { getActiveTools, getPopularTools } from '../tools/registry';
 import { cn } from '../lib/utils';
-import { ShieldCheck, Moon, Sun, FileText, Shield } from 'lucide-react';
+import { ShieldCheck, Moon, Sun, FileText, Shield, Heart, LayoutDashboard } from 'lucide-react';
 
 interface SidebarProps {
   onSelect?: () => void;
@@ -29,6 +29,9 @@ export function Sidebar({ onSelect }: SidebarProps) {
     }
   };
 
+  const popularTools = getPopularTools();
+  const allTools = getActiveTools();
+
   return (
     <aside className="w-72 h-full bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col transition-colors">
       <div className="p-6 flex items-center justify-between">
@@ -42,13 +45,12 @@ export function Sidebar({ onSelect }: SidebarProps) {
               </span>
             </div>
             <p className="text-[10px] uppercase font-black tracking-[0.3em] text-neutral-400 mt-1 dark:text-neutral-500">
-              PDF Engine
+              File Engine
             </p>
           </div>
         </Link>
 
-        {/* Desktop Theme Toggle */}
-        <button 
+        <button
           onClick={toggleTheme}
           className="hidden md:flex p-2 text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl transition-all"
         >
@@ -57,28 +59,82 @@ export function Sidebar({ onSelect }: SidebarProps) {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-4 py-2 space-y-1 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
-        {TOOLS.map((tool) => (
-          <Link
-            key={tool.id}
-            to={tool.href}
-            onClick={onSelect}
-            className={cn(
-              "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-sm group",
-              location.pathname === tool.href
-                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
-            )}
-          >
-            <div className={cn(
-              "transition-transform group-hover:scale-110",
-              location.pathname === tool.href ? "text-blue-600 dark:text-blue-400" : "text-neutral-400"
-            )}>
-              {tool.icon}
-            </div>
-            {tool.name}
-          </Link>
-        ))}
-        
+        <Link
+          to="/"
+          onClick={onSelect}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-sm group",
+            location.pathname === '/'
+              ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+              : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+          )}
+        >
+          <FileText className="w-5 h-5" />
+          All Tools
+        </Link>
+
+        <Link
+          to="/dashboard"
+          onClick={onSelect}
+          className={cn(
+            "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-sm group",
+            location.pathname === '/dashboard'
+              ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+              : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+          )}
+        >
+          <LayoutDashboard className="w-5 h-5" />
+          Dashboard
+        </Link>
+
+        <div className="py-4">
+          <div className="w-full h-px bg-neutral-100 dark:bg-neutral-800 my-2" />
+          <p className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-neutral-400">Popular</p>
+          {popularTools.map((tool) => {
+            const href = `/tools/${tool.slug}`;
+            return (
+              <Link
+                key={tool.id}
+                to={href}
+                onClick={onSelect}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-sm group",
+                  location.pathname === href
+                    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                    : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+                )}
+              >
+                <tool.icon className="w-5 h-5" />
+                {tool.name}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="py-4">
+          <div className="w-full h-px bg-neutral-100 dark:bg-neutral-800 my-2" />
+          <p className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-neutral-400">All Tools</p>
+          {allTools.map((tool) => {
+            const href = `/tools/${tool.slug}`;
+            return (
+              <Link
+                key={tool.id}
+                to={href}
+                onClick={onSelect}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-sm group",
+                  location.pathname === href
+                    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                    : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+                )}
+              >
+                <tool.icon className="w-5 h-5" />
+                {tool.name}
+              </Link>
+            );
+          })}
+        </div>
+
         <div className="py-4">
           <div className="w-full h-px bg-neutral-100 dark:bg-neutral-800 my-2" />
           <Link
@@ -91,7 +147,7 @@ export function Sidebar({ onSelect }: SidebarProps) {
                 : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
             )}
           >
-            < Shield className="w-5 h-5 text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors" />
+            <Shield className="w-5 h-5" />
             Privacy Policy
           </Link>
           <Link
@@ -104,7 +160,7 @@ export function Sidebar({ onSelect }: SidebarProps) {
                 : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
             )}
           >
-            <FileText className="w-5 h-5 text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white transition-colors" />
+            <FileText className="w-5 h-5" />
             Terms of Service
           </Link>
         </div>

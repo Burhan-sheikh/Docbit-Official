@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Files, Instagram } from 'lucide-react';
+import { ShieldCheck, Instagram } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { getPopularTools } from '../tools/registry';
 
 interface FooterProps {
   variant?: 'full' | 'minimal';
@@ -46,11 +47,9 @@ export default function Footer({ variant = 'full' }: FooterProps) {
             <div className="space-y-6">
               <h4 className="text-[10px] font-black uppercase tracking-widest text-neutral-400">Tools</h4>
               <ul className="space-y-4">
-                <li><Link to="/tools/merge-pdf" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Merge PDF</Link></li>
-                <li><Link to="/tools/split-pdf" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Split PDF</Link></li>
-                <li><Link to="/tools/image-to-pdf" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Img to PDF</Link></li>
-                <li><Link to="/tools/pdf-to-images" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">PDF to Img</Link></li>
-                <li><Link to="/tools/grayscale-pdf" className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">Grayscale PDF</Link></li>
+                {getPopularTools().map((tool) => (
+                  <li key={tool.id}><Link to={`/tools/${tool.slug}`} className="text-sm font-bold text-neutral-600 dark:text-neutral-400 hover:text-blue-600 transition-colors">{tool.name}</Link></li>
+                ))}
               </ul>
             </div>
 

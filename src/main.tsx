@@ -7,19 +7,18 @@ import App from './App.tsx';
 import { Home } from './components/Home';
 import './index.css';
 
-// Lazy load components for the router
-const MergeTool = lazy(() => import('./components/tools/MergeTool'));
-const SplitTool = lazy(() => import('./components/tools/SplitTool'));
-const PdfToImgTool = lazy(() => import('./components/tools/PdfToImgTool'));
-const ImgToPdfTool = lazy(() => import('./components/tools/ImgToPdfTool'));
-const GrayscaleTool = lazy(() => import('./components/tools/GrayscaleTool'));
+const ToolPage = lazy(() => import('./components/ToolPage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const Terms = lazy(() => import('./components/Terms'));
 const About = lazy(() => import('./components/About'));
 const Contact = lazy(() => import('./components/Contact'));
 const NotFound = lazy(() => import('./components/NotFound'));
+const LoginPage = lazy(() => import('./components/auth/LoginPage'));
+const SignupPage = lazy(() => import('./components/auth/SignupPage'));
+const ForgotPasswordPage = lazy(() => import('./components/auth/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('./components/auth/ResetPasswordPage'));
+const DashboardPage = lazy(() => import('./components/dashboard/DashboardPage'));
 
-// Register service worker for PWA
 registerSW({ immediate: true });
 
 const router = createBrowserRouter([
@@ -28,11 +27,12 @@ const router = createBrowserRouter([
     element: <App />,
     children: [
       { index: true, element: <Home /> },
-      { path: 'tools/merge-pdf', element: <MergeTool /> },
-      { path: 'tools/split-pdf', element: <SplitTool /> },
-      { path: 'tools/pdf-to-images', element: <PdfToImgTool /> },
-      { path: 'tools/image-to-pdf', element: <ImgToPdfTool /> },
-      { path: 'tools/grayscale-pdf', element: <GrayscaleTool /> },
+      { path: 'tools/:toolSlug', element: <ToolPage /> },
+      { path: 'login', element: <LoginPage /> },
+      { path: 'signup', element: <SignupPage /> },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
+      { path: 'dashboard', element: <DashboardPage /> },
       { path: 'privacy', element: <PrivacyPolicy /> },
       { path: 'terms', element: <Terms /> },
       { path: 'about', element: <About /> },

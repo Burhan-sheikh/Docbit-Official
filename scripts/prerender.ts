@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 import { SEO_CONFIG, SITE_NAME, APP_DOMAIN, THEME_COLOR, GLOBAL_OG_IMAGE } from '../src/seo/seoConfig';
 import { getSoftwareAppSchema, getWebApplicationSchema, getBreadcrumbSchema, getWebSiteSchema, getHowToSchema } from '../src/seo/structuredData';
 import { getFAQSchema } from '../src/utils/schema/faqSchema';
-import { TOOLS } from '../src/constants/tools';
+import { TOOL_REGISTRY } from '../src/tools/registry';
 
 const DIST_DIR = path.join(process.cwd(), 'dist');
 const TEMPLATE_PATH = path.join(DIST_DIR, 'index.html');
@@ -66,22 +66,20 @@ const routes: any[] = [
   { path: '/terms', config: SEO_CONFIG.terms || { title: `Terms of Service | ${SITE_NAME}`, description: 'The rules for using our platform.', canonical: `${APP_DOMAIN}/terms`, ogImage: GLOBAL_OG_IMAGE }, type: 'page' },
 ];
 
-// Add tool routes from TOOLS constant
-TOOLS.forEach(tool => {
-  // Map tool IDs to SEO_CONFIG keys if they differ slightly
-  let configKey = tool.id.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-  if (configKey === 'imgToPdf') configKey = 'imgToPdf'; // match
-  
-  const seoConfig = SEO_CONFIG[configKey];
-  
+// Add tool routes from registry (only active tools get prerendered pages)
+TOOL_REGISTRY.forEach(tool => {
+  if (tool.comingSoon) return;
+  const toolPath = `/tools/${tool.slug}`;
+  const seoConfig = SEO_CONFIG[tool.id.replace(/-([a-z])/g, (g) => g[1].toUpperCase())];
+
   routes.push({
-    path: tool.href,
+    path: toolPath,
     config: seoConfig || {
-      title: tool.seoTitle || tool.name,
-      description: tool.seoDescription || tool.description,
-      keywords: tool.keywords ? tool.keywords.join(', ') : '',
-      canonical: `${APP_DOMAIN}${tool.href}`,
-      ogImage: GLOBAL_OG_IMAGE
+      title: tool.seo.title,
+      description: tool.seo.description,
+      keywords: tool.seo.keywords.join(', '),
+      canonical: `${APP_DOMAIN}${toolPath}`,
+      ogImage: tool.seo.ogImage || GLOBAL_OG_IMAGE
     },
     type: 'tool',
     toolData: tool
