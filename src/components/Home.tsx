@@ -1,25 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { motion, Variants } from 'motion/react';
-import {
-  ShieldCheck,
-  Zap,
-  ArrowRight,
-  Search,
-  X,
-  Sparkles,
-  Heart,
-  Clock,
-  TrendingUp,
-  Layers,
-  Lock,
-  UploadCloud,
-  FileCheck,
-  HardDrive,
-  Users,
-  Briefcase,
-  GraduationCap,
-  Link as LinkIcon,
-} from 'lucide-react';
+import { ShieldCheck, Zap, ArrowRight, Search, X, Sparkles, Heart, Clock, TrendingUp, Layers, Lock, CloudUpload as UploadCloud, FileCheck, HardDrive, Users, Briefcase, GraduationCap, Link as LinkIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { TOOL_REGISTRY, getActiveTools, getPopularTools, searchTools, getToolsByCategory } from '../tools/registry';
 import { CATEGORIES } from '../tools/categories';

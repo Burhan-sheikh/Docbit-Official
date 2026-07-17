@@ -1,23 +1,4 @@
-import {
-  FileText,
-  Image as ImageIcon,
-  FileSpreadsheet,
-  Presentation,
-  Type,
-  ScanLine,
-  Archive,
-  RefreshCw,
-  Gauge,
-  ShieldCheck,
-  PenTool,
-  Edit3,
-  Sparkles,
-  Wrench,
-  FolderArchive,
-  Briefcase,
-  Code2,
-  Database,
-} from 'lucide-react';
+import { FileText, Image as ImageIcon, FileSpreadsheet, Presentation, Type, ScanLine, Archive, RefreshCw, Gauge, ShieldCheck, PenTool, CreditCard as Edit3, Sparkles, Wrench, FolderArchive, Briefcase, Code as Code2, Database } from 'lucide-react';
 import type { CategoryDefinition } from './registry.types';
 
 export const CATEGORIES: CategoryDefinition[] = [

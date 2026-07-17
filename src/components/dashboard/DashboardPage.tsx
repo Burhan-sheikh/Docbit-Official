@@ -1,19 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import {
-  User as UserIcon,
-  History,
-  Heart,
-  Clock,
-  Settings,
-  LogOut,
-  Trash2,
-  Zap,
-  CheckCircle2,
-  XCircle,
-  ShieldCheck,
-} from 'lucide-react';
+import { User as UserIcon, History, Heart, Clock, Settings, LogOut, Trash2, Zap, CircleCheck as CheckCircle2, Circle as XCircle, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../supabase/client';
 import { SEO } from '../SEO';

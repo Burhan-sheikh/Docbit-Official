@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { motion, AnimatePresence } from 'motion/react';
-import { Home as HomeIcon, LayoutDashboard } from 'lucide-react';
+import { Hop as HomeIcon, LayoutDashboard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '../lib/utils';
 import Offline from './Offline';

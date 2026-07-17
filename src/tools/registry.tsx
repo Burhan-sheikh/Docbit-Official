@@ -1,31 +1,4 @@
-import {
-  Combine,
-  Scissors,
-  FileImage,
-  Images,
-  Image as ImageIcon,
-  Palette,
-  FileText,
-  FileType,
-  FileSpreadsheet,
-  Presentation,
-  ScanLine,
-  Archive,
-  ShieldCheck,
-  PenTool,
-  Edit3,
-  Sparkles,
-  Wrench,
-  FolderArchive,
-  Briefcase,
-  Code2,
-  Database,
-  RotateCw,
-  Gauge,
-  Type,
-  Lock,
-  Unlock,
-} from 'lucide-react';
+import { Combine, Scissors, FileImage, Images, Image as ImageIcon, Palette, FileText, FileType, FileSpreadsheet, Presentation, ScanLine, Archive, ShieldCheck, PenTool, CreditCard as Edit3, Sparkles, Wrench, FolderArchive, Briefcase, Code as Code2, Database, RotateCw, Gauge, Type, Lock, Clock as Unlock } from 'lucide-react';
 import type { ToolDefinition } from './registry.types';
 import { TOOL_SEO_CONTENT } from '../constants/toolSeoContent';
 
