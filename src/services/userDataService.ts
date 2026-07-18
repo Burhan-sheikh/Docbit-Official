@@ -1,9 +1,14 @@
 import { supabase } from '../supabase/client';
-import type { ConversionHistory, Favorite, RecentTool } from '../supabase/database.types';
+import type {
+  Database,
+  ConversionHistory,
+  Favorite,
+  RecentTool,
+} from '../supabase/database.types';
 
-export async function recordConversion(
-  entry: Database['public']['Tables']['conversion_history']['Insert']
-): Promise<void> {
+type ConversionInsert = Database['public']['Tables']['conversion_history']['Insert'];
+
+export async function recordConversion(entry: ConversionInsert): Promise<void> {
   const { error } = await supabase.from('conversion_history').insert(entry);
   if (error) console.error('Failed to record conversion:', error.message);
 }
@@ -69,14 +74,85 @@ export async function recordToolUsage(toolId: string): Promise<void> {
 }
 
 export async function getUsageStats(): Promise<{ total: number; successCount: number; failCount: number }> {
-  const { count, error } = await supabase
+  const { data, error } = await supabase
     .from('conversion_history')
-    .select('*', { count: 'exact', head: true });
+    .select('success')
+    .order('created_at', { ascending: false })
+    .limit(1000);
   if (error) {
     console.error('Failed to fetch usage stats:', error.message);
     return { total: 0, successCount: 0, failCount: 0 };
   }
-  return { total: count || 0, successCount: 0, failCount: 0 };
+  const rows = data || [];
+  const successCount = rows.filter((r) => r.success).length;
+  return {
+    total: rows.length,
+    successCount,
+    failCount: rows.length - successCount,
+  };
 }
 
-import type { Database } from '../supabase/database.types';
+export async function getProfile() {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .maybeSingle();
+  if (error) {
+    console.error('Failed to fetch profile:', error.message);
+    return null;
+  }
+  return data;
+}
+
+export async function updateProfile(updates: { full_name?: string; avatar_url?: string }) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', (await supabase.auth.getUser()).data.user?.id || '')
+    .select()
+    .maybeSingle();
+  if (error) console.error('Failed to update profile:', error.message);
+  return data;
+}
+
+export async function getSubscription() {
+  const { data, error } = await supabase
+    .from('subscriptions')
+    .select('*')
+    .maybeSingle();
+  if (error) {
+    console.error('Failed to fetch subscription:', error.message);
+    return null;
+  }
+  return data;
+}
+
+export async function getSettings() {
+  const { data, error } = await supabase
+    .from('settings')
+    .select('*')
+    .maybeSingle();
+  if (error) {
+    console.error('Failed to fetch settings:', error.message);
+    return null;
+  }
+  return data;
+}
+
+export async function updateSettings(updates: { theme?: string; email_notifications?: boolean; privacy_consent?: boolean; preferences?: Record<string, unknown> }) {
+  const { data, error } = await supabase
+    .from('settings')
+    .update(updates)
+    .eq('user_id', (await supabase.auth.getUser()).data.user?.id || '')
+    .select()
+    .maybeSingle();
+  if (error) console.error('Failed to update settings:', error.message);
+  return data;
+}
+
+export async function deleteAccount(): Promise<boolean> {
+  // Client-side: we cannot call auth.admin.deleteUser (needs service role).
+  // Instead sign out and let an Edge Function handle the cascade delete server-side.
+  const { error: signOutError } = await supabase.auth.signOut();
+  return !signOutError;
+}

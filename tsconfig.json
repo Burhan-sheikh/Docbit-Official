@@ -21,7 +21,8 @@
       ]
     },
     "types": [
-      "vite-plugin-pwa/client"
+      "vite-plugin-pwa/client",
+      "vite/client"
     ],
     "allowImportingTsExtensions": true,
     "noEmit": true

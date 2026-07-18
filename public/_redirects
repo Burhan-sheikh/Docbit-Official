@@ -1,6 +1,8 @@
-/sitemap.xml       /sitemap.xml       200
-/sitemap-pages.xml /sitemap-pages.xml 200
-/sitemap-tools.xml /sitemap-tools.xml 200
-/robots.txt        /robots.txt        200
+/sitemap.xml               /sitemap.xml               200
+/sitemap-pages.xml         /sitemap-pages.xml         200
+/sitemap-tools.xml         /sitemap-tools.xml         200
+/sitemap-categories.xml    /sitemap-categories.xml    200
+/robots.txt                /robots.txt                200
 
+# SPA fallback — all routes resolve to index.html for client-side routing
 /* /index.html 200

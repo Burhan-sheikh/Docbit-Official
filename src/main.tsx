@@ -19,6 +19,7 @@ const SignupPage = lazy(() => import('./components/auth/SignupPage'));
 const ForgotPasswordPage = lazy(() => import('./components/auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./components/auth/ResetPasswordPage'));
 const DashboardPage = lazy(() => import('./components/dashboard/DashboardPage'));
+const ProtectedRoute = lazy(() => import('./components/ProtectedRoute'));
 
 registerSW({ immediate: true });
 
@@ -34,7 +35,7 @@ const router = createBrowserRouter([
       { path: 'signup', element: <SignupPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
-      { path: 'dashboard', element: <DashboardPage /> },
+      { path: 'dashboard', element: <ProtectedRoute><DashboardPage /></ProtectedRoute> },
       { path: 'privacy', element: <PrivacyPolicy /> },
       { path: 'terms', element: <Terms /> },
       { path: 'about', element: <About /> },

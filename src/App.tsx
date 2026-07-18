@@ -6,6 +6,8 @@ import ScrollToTop from './components/ScrollToTop';
 import { SplashScreen } from './components/SplashScreen';
 import { AnimatePresence } from 'motion/react';
 import { AuthProvider } from './hooks/useAuth';
+import { ToastProvider } from './components/Toast';
+import ErrorBoundary from './components/ErrorBoundary';
 import { getToolBySlug } from './tools/registry';
 
 export default function App() {
@@ -25,6 +27,7 @@ export default function App() {
 
   return (
     <AuthProvider>
+      <ToastProvider>
       <>
         <AnimatePresence mode="wait">
           {isLaunching && (
@@ -35,6 +38,7 @@ export default function App() {
         {!isLaunching && (
           <Layout activeToolName={activeTool?.name}>
             <ScrollToTop />
+            <ErrorBoundary>
             <Suspense fallback={
               <div className="flex items-center justify-center h-full min-h-[60vh]">
                 <div className="flex flex-col items-center gap-4">
@@ -45,9 +49,11 @@ export default function App() {
             }>
               <Outlet />
             </Suspense>
+            </ErrorBoundary>
           </Layout>
         )}
       </>
+      </ToastProvider>
     </AuthProvider>
   );
 }

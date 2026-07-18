@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { User as UserIcon, History, Heart, Clock, Settings, LogOut, Trash2, Zap, CircleCheck as CheckCircle2, Circle as XCircle, ShieldCheck } from 'lucide-react';
+import { User as UserIcon, History, Heart, Clock, Settings, LogOut, Trash2, Zap, CircleCheck as CheckCircle2, Circle as XCircle, ShieldCheck, Calendar, Crown } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../supabase/client';
 import { SEO } from '../SEO';
@@ -12,8 +12,14 @@ import {
   getFavorites,
   getRecentTools,
   getUsageStats,
+  getProfile,
+  getSubscription,
+  getSettings,
+  updateSettings,
+  updateProfile,
+  deleteAccount,
 } from '../../services/userDataService';
-import type { ConversionHistory, Favorite, RecentTool } from '../../supabase/database.types';
+import type { ConversionHistory, Favorite, RecentTool, Subscription, Settings as SettingsRow, Profile } from '../../supabase/database.types';
 import { APP_DOMAIN } from '../../seo/seoConfig';
 import { getBreadcrumbSchema } from '../../seo/structuredData';
 
@@ -26,22 +32,31 @@ export default function DashboardPage() {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [recents, setRecents] = useState<RecentTool[]>([]);
   const [stats, setStats] = useState({ total: 0, successCount: 0, failCount: 0 });
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [settings, setSettings] = useState<SettingsRow | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     if (!session) return;
     (async () => {
       setDataLoading(true);
-      const [h, f, r, s] = await Promise.all([
+      const [h, f, r, s, p, sub, set] = await Promise.all([
         getConversionHistory(),
         getFavorites(),
         getRecentTools(),
         getUsageStats(),
+        getProfile(),
+        getSubscription(),
+        getSettings(),
       ]);
       setHistory(h);
       setFavorites(f);
       setRecents(r);
       setStats(s);
+      setProfile(p);
+      setSubscription(sub);
+      setSettings(set);
       setDataLoading(false);
     })();
   }, [session]);
@@ -78,12 +93,24 @@ export default function DashboardPage() {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-3xl bg-blue-600 text-white flex items-center justify-center text-2xl font-black uppercase">
-            {user?.email?.[0] || 'U'}
+          <div className="w-16 h-16 rounded-3xl bg-blue-600 text-white flex items-center justify-center text-2xl font-black uppercase overflow-hidden">
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+            ) : (
+              user?.email?.[0] || 'U'
+            )}
           </div>
           <div>
-            <h1 className="text-2xl font-black tracking-tight dark:text-white uppercase italic">Dashboard</h1>
+            <h1 className="text-2xl font-black tracking-tight dark:text-white uppercase italic">
+              {profile?.full_name || 'Welcome'}
+            </h1>
             <p className="text-sm text-neutral-500 dark:text-neutral-400 font-medium">{user?.email}</p>
+            {profile?.created_at && (
+              <p className="text-[10px] font-black uppercase tracking-widest text-neutral-400 mt-1 flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                Joined {new Date(profile.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+              </p>
+            )}
           </div>
         </div>
         <button
@@ -195,7 +222,7 @@ export default function DashboardPage() {
                     className="group p-6 rounded-[32px] bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 hover:border-blue-500 transition-all flex items-center gap-4"
                   >
                     <div className="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
-                      {tool.icon}
+                      <tool.icon className="w-6 h-6" />
                     </div>
                     <div>
                       <h4 className="text-sm font-black uppercase italic">{tool.name}</h4>
@@ -221,24 +248,32 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800 rounded-2xl">
-                <div>
-                  <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Plan</p>
-                  <p className="text-sm font-black text-blue-600 uppercase">Free</p>
+                <div className="flex items-center gap-3">
+                  <Crown className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Plan</p>
+                    <p className="text-sm font-black text-blue-600 uppercase">{subscription?.plan || 'Free'}</p>
+                  </div>
                 </div>
-                <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest">Current</span>
+                <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                  {subscription?.status || 'Active'}
+                </span>
               </div>
+              {subscription?.current_period_end && (
+                <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800 rounded-2xl">
+                  <div>
+                    <p className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Renews</p>
+                    <p className="text-sm font-black text-neutral-900 dark:text-white">
+                      {new Date(subscription.current_period_end).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-[32px] p-8 space-y-6">
-            <h3 className="text-xs font-black uppercase tracking-widest text-neutral-400">Privacy</h3>
-            <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl">
-              <ShieldCheck className="w-5 h-5 text-blue-600" />
-              <p className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                Your files are never uploaded. All processing happens locally in your browser.
-              </p>
-            </div>
-          </div>
+          <SettingsCard settings={settings} onUpdate={setSettings} />
+          <ProfileEditor profile={profile} onSaved={setProfile} />
 
           <div className="bg-white dark:bg-neutral-900 border border-red-100 dark:border-red-900/30 rounded-[32px] p-8 space-y-6">
             <h3 className="text-xs font-black uppercase tracking-widest text-red-500">Danger Zone</h3>
@@ -277,6 +312,100 @@ function EmptyState({ icon, title, message }: { icon: React.ReactNode; title: st
   );
 }
 
+function SettingsCard({ settings, onUpdate }: { settings: SettingsRow | null; onUpdate: (s: SettingsRow) => void }) {
+  const [saving, setSaving] = useState(false);
+
+  const toggle = async (key: 'email_notifications' | 'privacy_consent') => {
+    if (!settings) return;
+    const updated = { ...settings, [key]: !settings[key] };
+    onUpdate(updated);
+    setSaving(true);
+    const result = await updateSettings({ [key]: !settings[key] });
+    if (result) onUpdate(result);
+    setSaving(false);
+  };
+
+  return (
+    <div className="bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-[32px] p-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xs font-black uppercase tracking-widest text-neutral-400">Privacy & Notifications</h3>
+        {saving && <span className="text-[10px] font-black uppercase text-blue-600">Saving...</span>}
+      </div>
+      <div className="space-y-4">
+        <button
+          onClick={() => toggle('email_notifications')}
+          className="w-full flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800 rounded-2xl"
+        >
+          <div className="text-left">
+            <p className="text-sm font-black text-neutral-900 dark:text-white">Email Notifications</p>
+            <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Product updates and alerts</p>
+          </div>
+          <span className={cn('w-12 h-6 rounded-full transition-colors relative', settings?.email_notifications ? 'bg-blue-600' : 'bg-neutral-300 dark:bg-neutral-600')}>
+            <span className={cn('absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform', settings?.email_notifications ? 'translate-x-6' : 'translate-x-0.5')} />
+          </span>
+        </button>
+        <button
+          onClick={() => toggle('privacy_consent')}
+          className="w-full flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800 rounded-2xl"
+        >
+          <div className="text-left">
+            <p className="text-sm font-black text-neutral-900 dark:text-white">Privacy Consent</p>
+            <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Allow anonymous usage analytics</p>
+          </div>
+          <span className={cn('w-12 h-6 rounded-full transition-colors relative', settings?.privacy_consent ? 'bg-blue-600' : 'bg-neutral-300 dark:bg-neutral-600')}>
+            <span className={cn('absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform', settings?.privacy_consent ? 'translate-x-6' : 'translate-x-0.5')} />
+          </span>
+        </button>
+      </div>
+      <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-900/10 rounded-2xl">
+        <ShieldCheck className="w-5 h-5 text-blue-600 shrink-0" />
+        <p className="text-xs font-bold text-blue-600 dark:text-blue-400">
+          Your files are never uploaded. All processing happens locally in your browser.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function ProfileEditor({ profile, onSaved }: { profile: Profile | null; onSaved: (p: Profile) => void }) {
+  const [name, setName] = useState(profile?.full_name || '');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setName(profile?.full_name || '');
+  }, [profile]);
+
+  const save = async () => {
+    setSaving(true);
+    const updated = await updateProfile({ full_name: name });
+    if (updated) onSaved(updated);
+    setSaving(false);
+  };
+
+  return (
+    <div className="bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-[32px] p-8 space-y-6">
+      <h3 className="text-xs font-black uppercase tracking-widest text-neutral-400">Edit Profile</h3>
+      <div className="space-y-3">
+        <label className="block">
+          <span className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Full Name</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="mt-1 w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 rounded-2xl text-sm font-bold text-neutral-900 dark:text-white outline-none focus:ring-2 ring-blue-500"
+          />
+        </label>
+        <button
+          onClick={save}
+          disabled={saving}
+          className="px-6 py-3 bg-blue-600 text-white font-black rounded-2xl text-xs uppercase tracking-widest disabled:opacity-50"
+        >
+          {saving ? 'Saving...' : 'Save Profile'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function LoadingState() {
   return (
     <div className="flex items-center justify-center py-12">
@@ -291,13 +420,8 @@ function DeleteAccountButton() {
 
   const handleDelete = async () => {
     setDeleting(true);
-    const { error } = await supabase.auth.admin.deleteUser(
-      (await supabase.auth.getUser()).data.user?.id || ''
-    );
-    if (error) {
-      const { error: signOutError } = await supabase.auth.signOut();
-      if (!signOutError) window.location.href = '/';
-    }
+    const ok = await deleteAccount();
+    if (ok) window.location.href = '/';
     setDeleting(false);
   };
 
