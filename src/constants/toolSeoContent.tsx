@@ -175,30 +175,88 @@ export const TOOL_SEO_CONTENT = {
       <p className="text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 mb-8">
         Rerendering PDF documents into high-resolution images is a common requirement for digital marketing, social media distribution, and presentation management. DocBit's **PDF to Image** converter delivers bit-perfect extraction into JPG or PNG formats, handled entirely within your private browser environment.
       </p>
-
-      <div className="my-12 p-10 bg-blue-600 rounded-[48px] text-white relative overflow-hidden shadow-2xl shadow-blue-500/30">
-        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent)]" />
-        <h3 className="text-2xl font-black mb-6 relative z-10">Modern Rendering Logic</h3>
-        <p className="text-blue-100 font-medium leading-relaxed relative z-10 max-w-2xl">
-          We utilize the browser's native Canvas and WebAssembly capabilities to rasterize PDF vectors into image data at up to 300 DPI. This ensures that every font, gradient, and vector path is captured with total fidelity for your digital output.
-        </p>
-      </div>
-
-      <h3 className="text-3xl font-black mt-16 mb-6 tracking-tight">Professional Use Cases</h3>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
-        <div className="space-y-4">
-          <h4 className="font-black text-neutral-900 dark:text-white uppercase text-xs tracking-widest">Marketing & Social</h4>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed font-medium">Easily convert specific PDF slides into high-quality Instagram posts or LinkedIn graphics without specialized design software.</p>
-        </div>
-        <div className="space-y-4">
-          <h4 className="font-black text-neutral-900 dark:text-white uppercase text-xs tracking-widest">Asset Management</h4>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed font-medium">Extract visual assets from locked documents for inclusion in dynamic web environments or presentations.</p>
-        </div>
-      </div>
-
-      <h3 className="text-3xl font-black mt-16 mb-6 tracking-tight">Security in Every Pixel</h3>
       <p className="mb-12">
-        Online PDF converters often store rendered images in their temporary cache, creating a massive security vulnerability for sensitive documents. DocBit's **Local-First** mandate means your rendered images exist only in your browser's memory. When you download your ZIP file, you are receiving data generated on your own hardware. Your privacy is protected by the architecture itself.
+        Online PDF converters often store rendered images in their temporary cache, creating a massive security vulnerability for sensitive documents. DocBit's **Local-First** mandate means your rendered images exist only in your browser's memory.
+      </p>
+    </>
+  ),
+  rotatePdf: (
+    <>
+      <h2 className="text-4xl font-black mb-8">Rotate PDF Pages with Precision and Privacy</h2>
+      <p className="text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 mb-8">
+        Whether you scanned a document sideways, received a PDF with mismatched page orientations, or need to fix a landscape page that should be portrait, DocBit's **Rotate PDF** tool gives you instant, granular control over page rotation — all without uploading your file to any server.
+      </p>
+      <h3 className="text-3xl font-black mt-16 mb-6 tracking-tight">Surgical Rotation Control</h3>
+      <p className="mb-8">
+        Unlike basic rotators that flip the entire document, DocBit lets you choose between rotating all pages or selecting specific pages from a visual thumbnail grid. Rotate by 90, 180, or 270 degrees with a single click. The rotation is applied by modifying page metadata, meaning your text remains perfectly searchable and images stay sharp — no re-rendering, no quality loss.
+      </p>
+      <h3 className="text-3xl font-black mt-16 mb-6 tracking-tight">Zero-Upload Architecture</h3>
+      <p className="mb-12">
+        Every rotation operation happens entirely in your browser using the pdf-lib engine. Your document never touches a server, making this the ideal tool for rotating confidential contracts, medical records, or legal briefs.
+      </p>
+    </>
+  ),
+  compressImage: (
+    <>
+      <h2 className="text-4xl font-black mb-8">Smart Image Compression Without Quality Loss</h2>
+      <p className="text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 mb-8">
+        Large image files slow down websites, clutter inboxes, and eat up storage. DocBit's **Compress Image** tool reduces JPG, PNG, and WebP file sizes by up to 80% while keeping visual quality high — all processed locally in your browser for maximum privacy.
+      </p>
+      <h3 className="text-3xl font-black mt-16 mb-6 tracking-tight">Four Quality Tiers</h3>
+      <p className="mb-8">
+        Choose from Low (smallest size), Medium (balanced), High (good quality), or Best (near-lossless) to match your use case. Optional max-width resizing lets you downscale large photos for web use, and format conversion lets you switch to WebP for even smaller files.
+      </p>
+      <h3 className="text-3xl font-black mt-16 mb-6 tracking-tight">Batch Processing Built In</h3>
+      <p className="mb-12">
+        Compress up to 20 images in a single session. Reorder your queue, see real-time savings percentages, and download all results at once. No watermarks, no signups, no uploads.
+      </p>
+    </>
+  ),
+  imageConverter: (
+    <>
+      <h2 className="text-4xl font-black mb-8">Universal Image Format Conversion</h2>
+      <p className="text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 mb-8">
+        Different platforms and workflows demand different image formats. DocBit's **Image Converter** handles JPG, PNG, WebP, BMP, and GIF conversions in your browser — no software installs, no uploads, no quality surprises.
+      </p>
+      <h3 className="text-3xl font-black mt-16 mb-6 tracking-tight">Format Intelligence</h3>
+      <p className="mb-8">
+        Converting to PNG is always lossless. Converting to JPG or WebP gives you adjustable quality control. When converting to JPG or WebP, transparent backgrounds are automatically filled with white to prevent ugly artifacts.
+      </p>
+      <h3 className="text-3xl font-black mt-16 mb-6 tracking-tight">Batch Conversion</h3>
+      <p className="mb-12">
+        Convert up to 20 images at once. Reorder your queue, pick a target format, adjust quality if needed, and download all converted files in one go. Everything runs locally — your images never leave your device.
+      </p>
+    </>
+  ),
+  textToPdf: (
+    <>
+      <h2 className="text-4xl font-black mb-8">Turn Plain Text into Polished PDFs</h2>
+      <p className="text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 mb-8">
+        Whether you have meeting notes, code snippets, a manuscript, or a Markdown draft, DocBit's **Text to PDF** converter transforms plain text files into clean, professionally formatted PDF documents — with full control over typography and layout.
+      </p>
+      <h3 className="text-3xl font-black mt-16 mb-6 tracking-tight">Full Typography Control</h3>
+      <p className="mb-8">
+        Choose between Helvetica, Times Roman, and Courier font families. Adjust font size from 8pt to 24pt, set line height from 1.0 to 2.5, control paragraph spacing, and align text left, center, or right. Pick A4 or Letter page size to match your region.
+      </p>
+      <h3 className="text-3xl font-black mt-16 mb-6 tracking-tight">Smart Text Wrapping</h3>
+      <p className="mb-12">
+        DocBit's rendering engine handles word wrapping, paragraph breaks, and page breaks automatically. Your text flows naturally across pages with consistent margins. All processing is local — your content stays private.
+      </p>
+    </>
+  ),
+  zipExtractor: (
+    <>
+      <h2 className="text-4xl font-black mb-8">Extract ZIP Archives Without Installing Anything</h2>
+      <p className="text-lg leading-relaxed text-neutral-600 dark:text-neutral-400 mb-8">
+        ZIP files are everywhere — downloaded projects, email attachments, cloud exports. DocBit's **Unzip / Extract** tool opens them instantly in your browser, with no software install and no file uploads.
+      </p>
+      <h3 className="text-3xl font-black mt-16 mb-6 tracking-tight">Two Output Modes</h3>
+      <p className="mb-8">
+        Choose **Individual** to see a list of every file inside the archive and download the ones you need. Choose **Re-ZIP** to repackage the contents into a fresh archive. Either way, nothing leaves your device.
+      </p>
+      <h3 className="text-3xl font-black mt-16 mb-6 tracking-tight">Handles Large Archives</h3>
+      <p className="mb-12">
+        DocBit supports ZIP files up to 500MB. Since extraction is fully client-side using JSZip, the only real limit is your device's available memory. Perfect for extracting sensitive archives containing confidential documents.
       </p>
     </>
   )
