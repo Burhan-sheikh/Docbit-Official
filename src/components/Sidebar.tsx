@@ -1,8 +1,22 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getActiveTools, getPopularTools } from '../tools/registry';
+import { useAuth } from '../hooks/useAuth';
 import { cn } from '../lib/utils';
-import { ShieldCheck, Moon, Sun, FileText, Shield, Heart, LayoutDashboard } from 'lucide-react';
+import {
+  ShieldCheck,
+  Moon,
+  Sun,
+  FileText,
+  Shield,
+  Heart,
+  LayoutDashboard,
+  LogIn,
+  User as UserIcon,
+  LogOut,
+  ChevronDown,
+  UserCircle,
+} from 'lucide-react';
 
 interface SidebarProps {
   onSelect?: () => void;
@@ -10,6 +24,9 @@ interface SidebarProps {
 
 export function Sidebar({ onSelect }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { session, user, signOut } = useAuth();
+  const [profileOpen, setProfileOpen] = React.useState(false);
   const [isDark, setIsDark] = React.useState(() => {
     if (typeof window !== 'undefined') {
       return document.documentElement.classList.contains('dark');
@@ -31,6 +48,29 @@ export function Sidebar({ onSelect }: SidebarProps) {
 
   const popularTools = getPopularTools();
   const allTools = getActiveTools();
+
+  const handleLogout = async () => {
+    await signOut();
+    setProfileOpen(false);
+    navigate('/');
+    onSelect?.();
+  };
+
+  const goToProfile = () => {
+    setProfileOpen(false);
+    navigate('/dashboard');
+    onSelect?.();
+  };
+
+  const goToLogin = () => {
+    navigate('/login');
+    onSelect?.();
+  };
+
+  const initials = (user?.email || 'U')
+    .split('@')[0]
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <aside className="w-72 h-full bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 flex flex-col transition-colors">
@@ -167,7 +207,74 @@ export function Sidebar({ onSelect }: SidebarProps) {
       </nav>
 
       <div className="p-4 mt-auto border-t border-neutral-100 dark:border-neutral-800">
-        <div className="bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl p-4 flex flex-col gap-3">
+        {session && user ? (
+          <div className="relative">
+            <button
+              onClick={() => setProfileOpen(!profileOpen)}
+              className={cn(
+                'w-full flex items-center gap-3 p-3 rounded-2xl transition-all',
+                profileOpen
+                  ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
+                  : 'bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 border border-transparent'
+              )}
+              aria-expanded={profileOpen}
+              aria-haspopup="menu"
+            >
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center text-xs font-black uppercase shrink-0 shadow-sm">
+                {initials}
+              </div>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-xs font-black truncate text-neutral-900 dark:text-white">
+                  {user.email?.split('@')[0] || 'User'}
+                </p>
+                <p className="text-[10px] text-neutral-400 font-bold truncate">
+                  {user.email}
+                </p>
+              </div>
+              <ChevronDown
+                className={cn(
+                  'w-4 h-4 text-neutral-400 transition-transform shrink-0',
+                  profileOpen && 'rotate-180'
+                )}
+              />
+            </button>
+
+            {profileOpen && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-neutral-100 dark:border-neutral-800 overflow-hidden z-10">
+                <button
+                  onClick={goToProfile}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
+                  <UserCircle className="w-4 h-4" />
+                  Profile
+                </button>
+                <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-200 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={goToLogin}
+            className="w-full flex items-center gap-3 p-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black transition-all shadow-lg shadow-blue-500/20 active:scale-[0.98]"
+          >
+            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+              <LogIn className="w-4 h-4" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-xs font-black uppercase tracking-tight">Login</p>
+              <p className="text-[10px] font-bold text-blue-100 uppercase tracking-widest">Sign in to sync</p>
+            </div>
+          </button>
+        )}
+
+        <div className="mt-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl p-3 flex flex-col gap-2">
           <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
             <ShieldCheck className="w-4 h-4" />
             <span className="text-xs font-bold uppercase tracking-wider">Secure</span>
