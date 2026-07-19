@@ -3,7 +3,7 @@
  * Reads from conversion_history (server-side) and enforces limits client-side
  * before a conversion begins. For hard enforcement, mirror this in an Edge Function.
  */
-import { supabase } from '../supabase/client';
+import { supabase, isSupabaseConfigured } from '../supabase/client';
 import { getPlan, type PlanId } from './plans';
 
 export interface UsageState {
@@ -18,6 +18,9 @@ export async function getDailyUsage(userId: string, planId: PlanId): Promise<Usa
   const unlimited = plan.limits.maxConversionsPerDay === 0;
   if (unlimited) {
     return { usedToday: 0, dailyLimit: 0, remaining: 0, unlimited: true };
+  }
+  if (!isSupabaseConfigured) {
+    return { usedToday: 0, dailyLimit: plan.limits.maxConversionsPerDay, remaining: plan.limits.maxConversionsPerDay, unlimited: false };
   }
 
   const startOfDay = new Date();

@@ -1,11 +1,12 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
-import { supabase } from '../supabase/client';
+import { supabase, isSupabaseConfigured } from '../supabase/client';
 
 interface AuthContextValue {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  isConfigured: boolean;
   signInWithEmail: (email: string, password: string) => Promise<{ error: string | null }>;
   signUpWithEmail: (email: string, password: string, fullName?: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<void>;
@@ -21,6 +22,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) {
+      setLoading(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);
@@ -38,11 +44,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     user: session?.user ?? null,
     loading,
+    isConfigured: isSupabaseConfigured,
     signInWithEmail: async (email, password) => {
+      if (!supabase) return { error: 'Authentication is not configured.' };
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return { error: error?.message ?? null };
     },
     signUpWithEmail: async (email, password, fullName) => {
+      if (!supabase) return { error: 'Authentication is not configured.' };
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -51,21 +60,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: error?.message ?? null };
     },
     signInWithGoogle: async () => {
+      if (!supabase) return;
       await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: window.location.origin + '/dashboard' },
       });
     },
     signOut: async () => {
+      if (!supabase) return;
       await supabase.auth.signOut();
     },
     resetPassword: async (email) => {
+      if (!supabase) return { error: 'Authentication is not configured.' };
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/reset-password',
       });
       return { error: error?.message ?? null };
     },
     updatePassword: async (password) => {
+      if (!supabase) return { error: 'Authentication is not configured.' };
       const { error } = await supabase.auth.updateUser({ password });
       return { error: error?.message ?? null };
     },

@@ -1,4 +1,4 @@
-import { supabase } from '../supabase/client';
+import { supabase, isSupabaseConfigured } from '../supabase/client';
 import type {
   Database,
   ConversionHistory,
@@ -9,11 +9,13 @@ import type {
 type ConversionInsert = Database['public']['Tables']['conversion_history']['Insert'];
 
 export async function recordConversion(entry: ConversionInsert): Promise<void> {
+  if (!isSupabaseConfigured) return;
   const { error } = await supabase.from('conversion_history').insert(entry);
   if (error) console.error('Failed to record conversion:', error.message);
 }
 
 export async function getConversionHistory(limit = 50): Promise<ConversionHistory[]> {
+  if (!isSupabaseConfigured) return [];
   const { data, error } = await supabase
     .from('conversion_history')
     .select('*')
@@ -27,6 +29,7 @@ export async function getConversionHistory(limit = 50): Promise<ConversionHistor
 }
 
 export async function getFavorites(): Promise<Favorite[]> {
+  if (!isSupabaseConfigured) return [];
   const { data, error } = await supabase
     .from('favorites')
     .select('*')
@@ -39,6 +42,7 @@ export async function getFavorites(): Promise<Favorite[]> {
 }
 
 export async function toggleFavorite(toolId: string): Promise<boolean> {
+  if (!isSupabaseConfigured) return false;
   const { data: existing } = await supabase
     .from('favorites')
     .select('id')
@@ -54,6 +58,7 @@ export async function toggleFavorite(toolId: string): Promise<boolean> {
 }
 
 export async function getRecentTools(limit = 10): Promise<RecentTool[]> {
+  if (!isSupabaseConfigured) return [];
   const { data, error } = await supabase
     .from('recent_tools')
     .select('*')
@@ -67,6 +72,7 @@ export async function getRecentTools(limit = 10): Promise<RecentTool[]> {
 }
 
 export async function recordToolUsage(toolId: string): Promise<void> {
+  if (!isSupabaseConfigured) return;
   const { error: upsertError } = await supabase
     .from('recent_tools')
     .upsert({ tool_id: toolId, used_at: new Date().toISOString() }, { onConflict: 'user_id,tool_id' });
@@ -74,6 +80,7 @@ export async function recordToolUsage(toolId: string): Promise<void> {
 }
 
 export async function getUsageStats(): Promise<{ total: number; successCount: number; failCount: number }> {
+  if (!isSupabaseConfigured) return { total: 0, successCount: 0, failCount: 0 };
   const { data, error } = await supabase
     .from('conversion_history')
     .select('success')
@@ -93,6 +100,7 @@ export async function getUsageStats(): Promise<{ total: number; successCount: nu
 }
 
 export async function getProfile() {
+  if (!isSupabaseConfigured) return null;
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
@@ -105,6 +113,7 @@ export async function getProfile() {
 }
 
 export async function updateProfile(updates: { full_name?: string; avatar_url?: string }) {
+  if (!isSupabaseConfigured) return null;
   const { data, error } = await supabase
     .from('profiles')
     .update(updates)
@@ -116,6 +125,7 @@ export async function updateProfile(updates: { full_name?: string; avatar_url?: 
 }
 
 export async function getSubscription() {
+  if (!isSupabaseConfigured) return null;
   const { data, error } = await supabase
     .from('subscriptions')
     .select('*')
@@ -128,6 +138,7 @@ export async function getSubscription() {
 }
 
 export async function getSettings() {
+  if (!isSupabaseConfigured) return null;
   const { data, error } = await supabase
     .from('settings')
     .select('*')
@@ -140,6 +151,7 @@ export async function getSettings() {
 }
 
 export async function updateSettings(updates: { theme?: string; email_notifications?: boolean; privacy_consent?: boolean; preferences?: Record<string, unknown> }) {
+  if (!isSupabaseConfigured) return null;
   const { data, error } = await supabase
     .from('settings')
     .update(updates)
@@ -151,8 +163,7 @@ export async function updateSettings(updates: { theme?: string; email_notificati
 }
 
 export async function deleteAccount(): Promise<boolean> {
-  // Client-side: we cannot call auth.admin.deleteUser (needs service role).
-  // Instead sign out and let an Edge Function handle the cascade delete server-side.
+  if (!isSupabaseConfigured) return false;
   const { error: signOutError } = await supabase.auth.signOut();
   return !signOutError;
 }
