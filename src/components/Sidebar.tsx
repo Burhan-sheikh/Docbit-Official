@@ -1,22 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getActiveTools, getPopularTools } from '../tools/registry';
+import { getActiveTools, getPopularTools, getToolsByCategory, TOOL_REGISTRY } from '../tools/registry';
+import { CATEGORIES } from '../tools/categories';
+import { CATEGORY_ICONS } from '../tools/registry';
 import { useAuth } from '../hooks/useAuth';
 import { cn } from '../lib/utils';
-import {
-  ShieldCheck,
-  Moon,
-  Sun,
-  FileText,
-  Shield,
-  Heart,
-  LayoutDashboard,
-  LogIn,
-  User as UserIcon,
-  LogOut,
-  ChevronDown,
-  UserCircle,
-} from 'lucide-react';
+import { ShieldCheck, Moon, Sun, FileText, Shield, LayoutDashboard, LogIn, ChevronDown, CircleUser as UserCircle, LogOut, Sparkles, X } from 'lucide-react';
 
 interface SidebarProps {
   onSelect?: () => void;
@@ -26,8 +15,9 @@ export function Sidebar({ onSelect }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { session, user, signOut } = useAuth();
-  const [profileOpen, setProfileOpen] = React.useState(false);
-  const [isDark, setIsDark] = React.useState(() => {
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [megaOpen, setMegaOpen] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
     if (typeof window !== 'undefined') {
       return document.documentElement.classList.contains('dark');
     }
@@ -46,8 +36,7 @@ export function Sidebar({ onSelect }: SidebarProps) {
     }
   };
 
-  const popularTools = getPopularTools();
-  const allTools = getActiveTools();
+  const popularTools = getPopularTools().slice(0, 5);
 
   const handleLogout = async () => {
     await signOut();
@@ -127,9 +116,12 @@ export function Sidebar({ onSelect }: SidebarProps) {
           Dashboard
         </Link>
 
-        <div className="py-4">
+        {/* Popular Tools */}
+        <div className="py-2">
           <div className="w-full h-px bg-neutral-100 dark:bg-neutral-800 my-2" />
-          <p className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-neutral-400">Popular</p>
+          <p className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-neutral-400 flex items-center gap-1.5">
+            <Sparkles className="w-3 h-3" /> Popular
+          </p>
           {popularTools.map((tool) => {
             const href = `/tools/${tool.slug}`;
             return (
@@ -151,28 +143,75 @@ export function Sidebar({ onSelect }: SidebarProps) {
           })}
         </div>
 
-        <div className="py-4">
+        {/* Mega Menu Trigger */}
+        <div className="py-2">
           <div className="w-full h-px bg-neutral-100 dark:bg-neutral-800 my-2" />
-          <p className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-neutral-400">All Tools</p>
-          {allTools.map((tool) => {
-            const href = `/tools/${tool.slug}`;
-            return (
-              <Link
-                key={tool.id}
-                to={href}
-                onClick={onSelect}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-sm group",
-                  location.pathname === href
-                    ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                    : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
-                )}
-              >
-                <tool.icon className="w-5 h-5" />
-                {tool.name}
-              </Link>
-            );
-          })}
+          <button
+            onClick={() => setMegaOpen(!megaOpen)}
+            className={cn(
+              "w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-sm group",
+              megaOpen
+                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+            )}
+            aria-expanded={megaOpen}
+          >
+            <span className="flex items-center gap-3">
+              <Sparkles className="w-5 h-5" />
+              Categories
+            </span>
+            <ChevronDown className={cn("w-4 h-4 transition-transform", megaOpen && "rotate-180")} />
+          </button>
+
+          {megaOpen && (
+            <div className="mt-2 space-y-4">
+              {CATEGORIES.map((cat) => {
+                const CatIcon = CATEGORY_ICONS[cat.id];
+                const tools = getToolsByCategory(cat.id);
+                const totalInCat = TOOL_REGISTRY.filter((t) => t.category === cat.id).length;
+                return (
+                  <div key={cat.id} className="space-y-1">
+                    <Link
+                      to={`/category/${cat.id}`}
+                      onClick={onSelect}
+                      className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-neutral-700 dark:text-neutral-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    >
+                      <CatIcon className="w-4 h-4" />
+                      {cat.name}
+                      <span className="ml-auto text-[9px] px-1.5 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500">
+                        {totalInCat}
+                      </span>
+                    </Link>
+                    <div className="ml-3 pl-3 border-l border-neutral-100 dark:border-neutral-800 space-y-0.5">
+                      {tools.length > 0 ? (
+                        tools.map((tool) => {
+                          const href = `/tools/${tool.slug}`;
+                          return (
+                            <Link
+                              key={tool.id}
+                              to={href}
+                              onClick={onSelect}
+                              className={cn(
+                                "flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all",
+                                location.pathname === href
+                                  ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                                  : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
+                              )}
+                            >
+                              <tool.icon className="w-3.5 h-3.5 shrink-0" />
+                              <span className="truncate">{tool.name}</span>
+                            </Link>
+                          );
+                        })
+                      ) : (
+                        <p className="px-2.5 py-1.5 text-[10px] text-neutral-400 italic">Coming soon</p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <div className="py-4">

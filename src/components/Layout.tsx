@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { SearchView } from './SearchView';
 import { motion, AnimatePresence } from 'motion/react';
-import { Hop as HomeIcon, LayoutDashboard } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { cn } from '../lib/utils';
 import Offline from './Offline';
 import Footer from './Footer';
-import { getPopularTools } from '../tools/registry';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -17,18 +15,22 @@ interface LayoutProps {
 
 export function Layout({ children, activeToolName, onReset }: LayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const location = useLocation();
 
-  const popularTools = getPopularTools().slice(0, 3);
-  const navItems = [
-    { label: 'Home', icon: <HomeIcon className="w-5 h-5" />, href: '/' },
-    ...popularTools.map((t) => ({
-      label: t.name.split(' ')[0],
-      icon: <t.icon className="w-5 h-5" />,
-      href: `/tools/${t.slug}`,
-    })),
-    { label: 'Account', icon: <LayoutDashboard className="w-5 h-5" />, href: '/dashboard' },
-  ];
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isTyping = ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) || target.isContentEditable;
+      if (isTyping) return;
+      if (e.key === '/' || ((e.metaKey || e.ctrlKey) && e.key === 'k')) {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
 
   return (
     <div className="flex h-screen bg-neutral-50 dark:bg-neutral-950 overflow-hidden font-sans text-neutral-900 dark:text-neutral-100">
@@ -63,13 +65,14 @@ export function Layout({ children, activeToolName, onReset }: LayoutProps) {
 
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden relative">
         <div className="md:hidden">
-          <Header 
-            activeToolName={activeToolName} 
-            onMenuClick={() => setIsSidebarOpen(true)} 
+          <Header
+            activeToolName={activeToolName}
+            onMenuClick={() => setIsSidebarOpen(true)}
             onReset={onReset}
+            onSearchClick={() => setIsSearchOpen(true)}
           />
         </div>
-        
+
         <main className="flex-1 overflow-y-auto relative">
           <div className="flex flex-col min-h-full">
             <div className="flex-1 p-4 md:p-6 lg:p-8">
@@ -80,31 +83,9 @@ export function Layout({ children, activeToolName, onReset }: LayoutProps) {
         </main>
 
         <Offline />
-
-        {/* Bottom Navigation Bar - Mobile Only */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 h-18 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-xl border-t border-neutral-200 dark:border-neutral-800 flex items-center justify-between px-2 pb-safe z-30">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              to={item.href}
-              className={cn(
-                "flex-1 flex flex-col items-center justify-center gap-1.5 h-full transition-all duration-200",
-                location.pathname === item.href 
-                  ? "text-blue-600 dark:text-blue-400" 
-                  : "text-neutral-500 dark:text-neutral-400 opacity-60 hover:opacity-100"
-              )}
-            >
-              <div className={cn(
-                "w-10 h-10 rounded-xl flex items-center justify-center transition-colors",
-                location.pathname === item.href ? "bg-blue-50 dark:bg-blue-900/30" : ""
-              )}>
-                {item.icon}
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-tighter">{item.label}</span>
-            </Link>
-          ))}
-        </div>
       </div>
+
+      <SearchView open={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </div>
   );
 }

@@ -4,25 +4,11 @@ import type { LucideIcon } from 'lucide-react';
 export type ProcessingMode = 'local' | 'cloud' | 'hybrid';
 
 export type ToolCategory =
+  | 'image'
   | 'pdf'
-  | 'images'
-  | 'documents'
-  | 'excel'
-  | 'presentations'
-  | 'text'
-  | 'ocr'
-  | 'compression'
-  | 'conversion'
-  | 'optimization'
-  | 'security'
-  | 'signing'
-  | 'editing'
-  | 'ai'
-  | 'utilities'
-  | 'archives'
-  | 'business'
-  | 'developer'
-  | 'data';
+  | 'document'
+  | 'spreadsheet'
+  | 'presentation';
 
 export interface ToolFAQ {
   q: string;
