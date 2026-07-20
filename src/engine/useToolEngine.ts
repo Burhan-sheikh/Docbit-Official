@@ -9,7 +9,7 @@ import type {
 } from './types';
 import { validateFiles } from './validation';
 import { runProcessing, createAbortController, friendlyError } from './processor';
-import { cleanupAllUrls, downloadResult, downloadResults, shareResult } from './download';
+import { cleanupAllUrls, downloadResult, downloadResults, downloadAsZip, shareResult } from './download';
 
 export interface UseToolEngineOptions {
   mode: ProcessingMode;
@@ -45,6 +45,7 @@ export interface ToolEngineState {
   retry: () => void;
   download: (result?: ProcessingResult) => Promise<void>;
   downloadAll: () => Promise<void>;
+  downloadZip: (zipName: string) => Promise<void>;
   share: (result: ProcessingResult) => Promise<boolean>;
   reset: () => void;
 }
@@ -197,6 +198,10 @@ export function useToolEngine(opts: UseToolEngineOptions): ToolEngineState {
     await downloadResults(results);
   }, [results]);
 
+  const downloadZip = useCallback(async (zipName: string) => {
+    await downloadAsZip(results, zipName);
+  }, [results]);
+
   const share = useCallback(
     async (result: ProcessingResult) => {
       return shareResult(result, opts.toolName);
@@ -232,6 +237,7 @@ export function useToolEngine(opts: UseToolEngineOptions): ToolEngineState {
     retry,
     download,
     downloadAll,
+    downloadZip,
     share,
     reset,
   };

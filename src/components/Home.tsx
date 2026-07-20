@@ -356,8 +356,13 @@ export function Home() {
                         </span>
                       )}
                     </div>
-                    <h3 className="text-base font-black tracking-tight text-neutral-900 dark:text-white mb-1.5">
-                      {tool.name}
+                    <h3 className="text-base font-black tracking-tight text-neutral-900 dark:text-white mb-1.5 flex items-center gap-1.5">
+                      <span className="truncate">{tool.name}</span>
+                      {tool.comingSoon && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-full text-[8px] font-black uppercase tracking-widest shrink-0">
+                          <Clock className="w-2 h-2" /> Soon
+                        </span>
+                      )}
                     </h3>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed line-clamp-2 mb-3">
                       {tool.description}

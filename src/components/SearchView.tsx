@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, X, ArrowLeft, ListFilter as Filter } from 'lucide-react';
+import { Search, X, ArrowLeft, ListFilter as Filter, Clock } from 'lucide-react';
 import { TOOL_REGISTRY, getToolsByCategory, searchTools } from '../tools/registry';
 import { CATEGORIES } from '../tools/categories';
 import { CATEGORY_ICONS } from '../tools/registry';
@@ -37,8 +37,8 @@ export function SearchView({ open, onClose }: SearchViewProps) {
 
   const results = useMemo(() => {
     if (query) return searchTools(query);
-    if (activeCategory) return getToolsByCategory(activeCategory);
-    return TOOL_REGISTRY.filter((t) => !t.comingSoon);
+    if (activeCategory) return TOOL_REGISTRY.filter((t) => t.category === activeCategory);
+    return TOOL_REGISTRY;
   }, [query, activeCategory]);
 
   if (!open) return null;
@@ -167,8 +167,13 @@ export function SearchView({ open, onClose }: SearchViewProps) {
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-3 group-hover:scale-105 transition-transform">
                       <CatIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
-                    <h3 className="text-sm font-black tracking-tight text-neutral-900 dark:text-white mb-1 line-clamp-1">
-                      {tool.name}
+                    <h3 className="text-sm font-black tracking-tight text-neutral-900 dark:text-white mb-1 line-clamp-1 flex items-center gap-1.5">
+                      <span className="truncate">{tool.name}</span>
+                      {tool.comingSoon && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-full text-[8px] font-black uppercase tracking-widest shrink-0">
+                          <Clock className="w-2 h-2" /> Soon
+                        </span>
+                      )}
                     </h3>
                     <p className="text-[11px] text-neutral-500 dark:text-neutral-400 font-medium line-clamp-2">
                       {tool.description}

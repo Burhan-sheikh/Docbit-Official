@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, RefreshCw, ShieldCheck, Settings2, Image as ImageIcon, ArrowRight } from 'lucide-react';
+import { Plus, RefreshCw, ShieldCheck, Settings2, Image as ImageIcon, ArrowRight, CircleAlert } from 'lucide-react';
 import { useFileExitConfirm } from '../../hooks/useFileExitConfirm';
 import { useConversionTracker } from '../../hooks/useConversionTracker';
-import { TOOL_REGISTRY } from '../../tools/registry';
+import { getToolBySlug } from '../../tools/registry';
 import type { ToolDefinition } from '../../tools/registry.types';
 import { useToolEngine } from '../../engine/useToolEngine';
 import { UploadZone } from '../../components/engine/UploadZone';
@@ -13,8 +14,6 @@ import { ResultPanel } from '../../components/engine/ResultPanel';
 import { ToolShell } from '../../components/engine/ToolShell';
 import { cn } from '../../lib/utils';
 
-const tool: ToolDefinition = TOOL_REGISTRY.find((t) => t.id === 'image-converter')!;
-
 type TargetFormat = 'jpg' | 'png' | 'webp';
 
 const FORMAT_MIME: Record<TargetFormat, string> = {
@@ -22,6 +21,33 @@ const FORMAT_MIME: Record<TargetFormat, string> = {
   png: 'image/png',
   webp: 'image/webp',
 };
+
+const FORMAT_LABEL: Record<TargetFormat, string> = {
+  jpg: 'JPG',
+  png: 'PNG',
+  webp: 'WebP',
+};
+
+interface FormatPair {
+  source: string[];
+  target: TargetFormat;
+}
+
+function parseSlug(slug: string): FormatPair | null {
+  const map: Record<string, FormatPair> = {
+    'png-to-jpg': { source: ['png'], target: 'jpg' },
+    'jpg-to-png': { source: ['jpg', 'jpeg'], target: 'png' },
+    'webp-to-jpg': { source: ['webp'], target: 'jpg' },
+    'jpg-to-webp': { source: ['jpg', 'jpeg'], target: 'webp' },
+    'png-to-webp': { source: ['png'], target: 'webp' },
+    'webp-to-png': { source: ['webp'], target: 'png' },
+    'bmp-to-png': { source: ['bmp'], target: 'png' },
+    'tiff-to-jpg': { source: ['tiff', 'tif'], target: 'jpg' },
+    'gif-to-png': { source: ['gif'], target: 'png' },
+    'heic-to-jpg': { source: ['heic'], target: 'jpg' },
+  };
+  return map[slug] || null;
+}
 
 const convertProcessor = async ({ files, options, onProgress, signal }: any) => {
   const { targetFormat, quality } = options as { targetFormat: TargetFormat; quality: number };
@@ -33,34 +59,38 @@ const convertProcessor = async ({ files, options, onProgress, signal }: any) => 
     onProgress({ stage: `Converting image ${i + 1} of ${files.length}`, current: i, total: files.length, percent: Math.round((i / files.length) * 100) });
 
     const file = files[i];
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
-    await new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+    try {
+      const img = new Image();
+      img.src = URL.createObjectURL(file);
+      await new Promise((res, rej) => { img.onload = res; img.onerror = () => rej(new Error(`Could not read "${file.name}". The file may be corrupt or unsupported.`)); });
 
-    const canvas = document.createElement('canvas');
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) throw new Error('Canvas context failed');
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) throw new Error('Canvas context failed');
 
-    if (targetFormat === 'jpg' || targetFormat === 'webp') {
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      if (targetFormat === 'jpg' || targetFormat === 'webp') {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+      ctx.drawImage(img, 0, 0);
+      URL.revokeObjectURL(img.src);
+
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mime, quality));
+      if (!blob) throw new Error(`Failed to convert "${file.name}".`);
+
+      const baseName = file.name.replace(/\.[^/.]+$/, '');
+      results.push({
+        blob,
+        filename: `${baseName}.${targetFormat}`,
+        mimeType: mime,
+        size: blob.size,
+        url: URL.createObjectURL(blob),
+      });
+    } catch (err) {
+      throw new Error(`Image ${i + 1} (${file.name}): ${(err as Error).message}`);
     }
-    ctx.drawImage(img, 0, 0);
-    URL.revokeObjectURL(img.src);
-
-    const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, mime, quality));
-    if (!blob) throw new Error('Failed to convert image.');
-
-    const baseName = file.name.replace(/\.[^/.]+$/, '');
-    results.push({
-      blob,
-      filename: `${baseName}.${targetFormat}`,
-      mimeType: mime,
-      size: blob.size,
-      url: URL.createObjectURL(blob),
-    });
   }
 
   onProgress({ stage: 'Complete', current: files.length, total: files.length, percent: 100 });
@@ -68,25 +98,33 @@ const convertProcessor = async ({ files, options, onProgress, signal }: any) => 
 };
 
 export default function ImageConverterTool() {
-  const [targetFormat, setTargetFormat] = useState<TargetFormat>('png');
+  const { toolSlug } = useParams<{ toolSlug: string }>();
+  const tool = getToolBySlug(toolSlug || '') as ToolDefinition;
+
+  const formatPair = useMemo(() => parseSlug(toolSlug || ''), [toolSlug]);
+  const targetFormat = formatPair?.target ?? 'png';
+  const sourceExts = formatPair?.source ?? ['jpg', 'jpeg', 'png', 'webp'];
+
   const [quality, setQuality] = useState(0.9);
   const [isDownloaded, setIsDownloaded] = useState(false);
   const track = useConversionTracker();
 
+  const validation = {
+    acceptedExtensions: sourceExts,
+    acceptedMimeTypes: sourceExts.map((e) => `image/${e === 'jpg' ? 'jpeg' : e}`),
+    maxFiles: 50,
+    minFiles: 1,
+    maxFileSizeMb: 50,
+    allowDuplicates: false,
+    validateSignature: true,
+  };
+
   const engine = useToolEngine({
     mode: 'local',
     processor: convertProcessor,
-    validation: {
-      acceptedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'],
-      acceptedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/bmp', 'image/gif'],
-      maxFiles: 20,
-      minFiles: 1,
-      maxFileSizeMb: 50,
-      allowDuplicates: false,
-      validateSignature: true,
-    },
-    toolId: tool.id,
-    toolName: tool.name,
+    validation,
+    toolId: tool?.id || 'image-converter',
+    toolName: tool?.name || 'Image Converter',
     onTrack: (info) =>
       track({ toolId: info.toolId, toolName: info.toolName, filename: info.filename, outputType: info.outputType, fileSize: info.fileSize, success: info.success, processingMethod: info.processingMethod }),
   });
@@ -100,6 +138,19 @@ export default function ImageConverterTool() {
     setIsDownloaded(true);
   };
 
+  if (!formatPair) {
+    return (
+      <ToolShell tool={tool} isDirty={false} blocker={{ state: 'idle' }}>
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+          <CircleAlert className="w-12 h-12 text-red-500" />
+          <p className="text-lg font-black">Unknown conversion format.</p>
+        </div>
+      </ToolShell>
+    );
+  }
+
+  const acceptStr = sourceExts.map((e) => `.${e}`).join(',');
+
   return (
     <ToolShell tool={tool} isDirty={dirty} blocker={blocker}>
       <AnimatePresence>
@@ -110,6 +161,8 @@ export default function ImageConverterTool() {
             isDownloaded={isDownloaded}
             onDownload={handleDownload}
             onDownloadAll={engine.downloadAll}
+            onDownloadOne={engine.download}
+            onDownloadZip={engine.downloadZip}
             onReset={() => { engine.reset(); setIsDownloaded(false); }}
             onBack={() => engine.reset()}
             elapsedMs={engine.elapsedMs}
@@ -120,27 +173,21 @@ export default function ImageConverterTool() {
       {engine.queue.length === 0 ? (
         <UploadZone
           onFilesSelected={engine.addFiles}
-          validation={{
-            acceptedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'gif'],
-            acceptedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/bmp', 'image/gif'],
-            maxFiles: 20,
-            minFiles: 1,
-            maxFileSizeMb: 50,
-            allowDuplicates: false,
-            validateSignature: true,
-          }}
-          label="Select Images to Convert"
+          validation={validation}
+          label={`Select ${sourceExts.map((s) => s.toUpperCase()).join(', ')} Images`}
         />
       ) : (
         <div className="space-y-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
             <div className="space-y-2">
-              <h1 className="text-3xl font-black">Image Converter</h1>
-              <p className="text-sm font-bold uppercase tracking-widest text-neutral-400">Convert between JPG, PNG, and WebP formats.</p>
+              <h1 className="text-3xl font-black">{tool?.name || 'Image Converter'}</h1>
+              <p className="text-sm font-bold uppercase tracking-widest text-neutral-400">
+                Convert {sourceExts.map((s) => s.toUpperCase()).join(', ')} to {FORMAT_LABEL[targetFormat]}. Up to 50 images.
+              </p>
             </div>
             <label className="flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl cursor-pointer active:scale-95 text-sm uppercase italic tracking-tighter shrink-0">
               <Plus className="w-5 h-5" /> ADD MORE
-              <input type="file" multiple className="hidden" accept="image/jpeg,image/png,image/webp,image/bmp,image/gif" onChange={(e) => e.target.files && engine.addFiles(Array.from(e.target.files))} />
+              <input type="file" multiple className="hidden" accept={acceptStr} onChange={(e) => e.target.files && engine.addFiles(Array.from(e.target.files))} />
             </label>
           </div>
 
@@ -152,16 +199,11 @@ export default function ImageConverterTool() {
                   <h3 className="text-xs font-black tracking-widest uppercase">Conversion Options</h3>
                 </div>
 
-                <div className="space-y-3">
-                  <p className="text-[10px] font-black uppercase text-neutral-400 tracking-wider italic">Target Format</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(['jpg', 'png', 'webp'] as TargetFormat[]).map((f) => (
-                      <button key={f} onClick={() => setTargetFormat(f)} className={cn('flex flex-col items-center justify-center gap-2 py-6 rounded-xl border-2 transition-all', targetFormat === f ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-900/20 text-blue-600' : 'border-neutral-100 dark:border-neutral-800 text-neutral-400 hover:border-neutral-200')}>
-                        <span className="text-lg font-black uppercase">{f}</span>
-                        <span className="text-[8px] font-bold uppercase tracking-widest opacity-60">{FORMAT_MIME[f]}</span>
-                      </button>
-                    ))}
-                  </div>
+                <div className="flex items-center gap-3 px-4 py-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl border border-neutral-100 dark:border-neutral-800">
+                  <span className="text-[10px] font-black uppercase text-neutral-400">Source:</span>
+                  <span className="text-[10px] font-black text-neutral-900 dark:text-white uppercase">{sourceExts.map((s) => s.toUpperCase()).join(', ')}</span>
+                  <ArrowRight className="w-3 h-3 text-neutral-300" />
+                  <span className="text-[10px] font-black text-blue-600 uppercase">{FORMAT_LABEL[targetFormat]}</span>
                 </div>
 
                 {(targetFormat === 'jpg' || targetFormat === 'webp') && (
@@ -173,13 +215,6 @@ export default function ImageConverterTool() {
                     <input type="range" min={0.3} max={1} step={0.05} value={quality} onChange={(e) => setQuality(Number(e.target.value))} className="w-full accent-blue-600" />
                   </div>
                 )}
-
-                <div className="flex items-center gap-3 px-4 py-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl border border-neutral-100 dark:border-neutral-800">
-                  <span className="text-[10px] font-black uppercase text-neutral-400">Source:</span>
-                  <span className="text-[10px] font-black text-neutral-900 dark:text-white uppercase">Multiple</span>
-                  <ArrowRight className="w-3 h-3 text-neutral-300" />
-                  <span className="text-[10px] font-black text-blue-600 uppercase">{targetFormat}</span>
-                </div>
               </div>
 
               <div className="xl:col-span-4 border-t xl:border-t-0 xl:border-l border-neutral-100 dark:border-neutral-800 pt-8 xl:pt-0 xl:pl-8 flex flex-col justify-center">
@@ -200,7 +235,7 @@ export default function ImageConverterTool() {
           <div className="space-y-4">
             <div className="flex items-center gap-3 px-2">
               <ImageIcon className="w-5 h-5 text-blue-600" />
-              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">Image Queue ({engine.queue.length})</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">Image Queue ({engine.queue.length}/50)</h3>
             </div>
             <FileQueue queue={engine.queue} onRemove={engine.removeFile} showReorder onReorder={engine.reorderFile} />
           </div>

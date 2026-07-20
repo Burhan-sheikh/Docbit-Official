@@ -61,60 +61,69 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     outputFormats: ['jpg'],
     seo: { title: 'PNG to JPG Online Free', description: 'Convert PNG to JPG online free with DocBit. Batch up to 50 images.', keywords: ['png to jpg'] },
   },
-  soon({
+  {
     id: 'jpg-to-png', slug: 'jpg-to-png', name: 'JPG to PNG', description: 'Convert JPG images to PNG format.',
-    category: 'image', searchTerms: ['jpg to png'],
-    maxFiles: 50, acceptedFormats: ['jpg', 'jpeg'], outputFormats: ['png'], supportsBatch: true,
+    category: 'image', icon: FileImage, component: () => import('../components/tools/ImageConverterTool'),
+    searchTerms: ['jpg to png'], processingMode: 'local', supportsBatch: true, maxFiles: 50,
+    acceptedFormats: ['jpg', 'jpeg'], outputFormats: ['png'],
     seo: { title: 'JPG to PNG Online Free', description: 'Convert JPG to PNG online free with DocBit.', keywords: ['jpg to png'] },
-  }),
-  soon({
+  },
+  {
     id: 'webp-to-jpg', slug: 'webp-to-jpg', name: 'WebP to JPG', description: 'Convert WebP images to JPG format.',
-    category: 'image', searchTerms: ['webp to jpg'],
-    maxFiles: 50, acceptedFormats: ['webp'], outputFormats: ['jpg'], supportsBatch: true,
+    category: 'image', icon: FileImage, component: () => import('../components/tools/ImageConverterTool'),
+    searchTerms: ['webp to jpg'], processingMode: 'local', supportsBatch: true, maxFiles: 50,
+    acceptedFormats: ['webp'], outputFormats: ['jpg'],
     seo: { title: 'WebP to JPG Online Free', description: 'Convert WebP to JPG online free with DocBit.', keywords: ['webp to jpg'] },
-  }),
-  soon({
+  },
+  {
     id: 'jpg-to-webp', slug: 'jpg-to-webp', name: 'JPG to WebP', description: 'Convert JPG images to WebP format.',
-    category: 'image', searchTerms: ['jpg to webp'],
-    maxFiles: 50, acceptedFormats: ['jpg', 'jpeg'], outputFormats: ['webp'], supportsBatch: true,
+    category: 'image', icon: FileImage, component: () => import('../components/tools/ImageConverterTool'),
+    searchTerms: ['jpg to webp'], processingMode: 'local', supportsBatch: true, maxFiles: 50,
+    acceptedFormats: ['jpg', 'jpeg'], outputFormats: ['webp'],
     seo: { title: 'JPG to WebP Online Free', description: 'Convert JPG to WebP online free with DocBit.', keywords: ['jpg to webp'] },
-  }),
-  soon({
+  },
+  {
     id: 'png-to-webp', slug: 'png-to-webp', name: 'PNG to WebP', description: 'Convert PNG images to WebP format.',
-    category: 'image', searchTerms: ['png to webp'],
-    maxFiles: 50, acceptedFormats: ['png'], outputFormats: ['webp'], supportsBatch: true,
+    category: 'image', icon: FileImage, component: () => import('../components/tools/ImageConverterTool'),
+    searchTerms: ['png to webp'], processingMode: 'local', supportsBatch: true, maxFiles: 50,
+    acceptedFormats: ['png'], outputFormats: ['webp'],
     seo: { title: 'PNG to WebP Online Free', description: 'Convert PNG to WebP online free with DocBit.', keywords: ['png to webp'] },
-  }),
-  soon({
+  },
+  {
     id: 'webp-to-png', slug: 'webp-to-png', name: 'WebP to PNG', description: 'Convert WebP images to PNG format.',
-    category: 'image', searchTerms: ['webp to png'],
-    maxFiles: 50, acceptedFormats: ['webp'], outputFormats: ['png'], supportsBatch: true,
+    category: 'image', icon: FileImage, component: () => import('../components/tools/ImageConverterTool'),
+    searchTerms: ['webp to png'], processingMode: 'local', supportsBatch: true, maxFiles: 50,
+    acceptedFormats: ['webp'], outputFormats: ['png'],
     seo: { title: 'WebP to PNG Online Free', description: 'Convert WebP to PNG online free with DocBit.', keywords: ['webp to png'] },
-  }),
-  soon({
+  },
+  {
     id: 'bmp-to-png', slug: 'bmp-to-png', name: 'BMP to PNG', description: 'Convert BMP images to PNG format.',
-    category: 'image', searchTerms: ['bmp to png'],
-    maxFiles: 50, acceptedFormats: ['bmp'], outputFormats: ['png'], supportsBatch: true,
+    category: 'image', icon: FileImage, component: () => import('../components/tools/ImageConverterTool'),
+    searchTerms: ['bmp to png'], processingMode: 'local', supportsBatch: true, maxFiles: 50,
+    acceptedFormats: ['bmp'], outputFormats: ['png'],
     seo: { title: 'BMP to PNG Online Free', description: 'Convert BMP to PNG online free with DocBit.', keywords: ['bmp to png'] },
-  }),
-  soon({
+  },
+  {
     id: 'tiff-to-jpg', slug: 'tiff-to-jpg', name: 'TIFF to JPG', description: 'Convert TIFF images to JPG format.',
-    category: 'image', searchTerms: ['tiff to jpg'],
-    maxFiles: 50, acceptedFormats: ['tiff', 'tif'], outputFormats: ['jpg'], supportsBatch: true,
+    category: 'image', icon: FileImage, component: () => import('../components/tools/ImageConverterTool'),
+    searchTerms: ['tiff to jpg'], processingMode: 'local', supportsBatch: true, maxFiles: 50,
+    acceptedFormats: ['tiff', 'tif'], outputFormats: ['jpg'],
     seo: { title: 'TIFF to JPG Online Free', description: 'Convert TIFF to JPG online free with DocBit.', keywords: ['tiff to jpg'] },
-  }),
-  soon({
+  },
+  {
     id: 'gif-to-png', slug: 'gif-to-png', name: 'GIF to PNG', description: 'Convert GIF first frame to PNG.',
-    category: 'image', searchTerms: ['gif to png'],
-    maxFiles: 50, acceptedFormats: ['gif'], outputFormats: ['png'], supportsBatch: true,
+    category: 'image', icon: FileImage, component: () => import('../components/tools/ImageConverterTool'),
+    searchTerms: ['gif to png'], processingMode: 'local', supportsBatch: true, maxFiles: 50,
+    acceptedFormats: ['gif'], outputFormats: ['png'],
     seo: { title: 'GIF to PNG Online Free', description: 'Convert GIF to PNG (first frame) online free with DocBit.', keywords: ['gif to png'] },
-  }),
-  soon({
+  },
+  {
     id: 'heic-to-jpg', slug: 'heic-to-jpg', name: 'HEIC to JPG', description: 'Convert HEIC images to JPG format.',
-    category: 'image', searchTerms: ['heic to jpg'],
-    maxFiles: 50, acceptedFormats: ['heic'], outputFormats: ['jpg'], supportsBatch: true,
+    category: 'image', icon: FileImage, component: () => import('../components/tools/ImageConverterTool'),
+    searchTerms: ['heic to jpg'], processingMode: 'local', supportsBatch: true, maxFiles: 50,
+    acceptedFormats: ['heic'], outputFormats: ['jpg'],
     seo: { title: 'HEIC to JPG Online Free', description: 'Convert HEIC to JPG online free with DocBit.', keywords: ['heic to jpg'] },
-  }),
+  },
   // Image: Compress
   {
     id: 'compress-image',
@@ -144,17 +153,17 @@ export const TOOL_REGISTRY: ToolDefinition[] = [
     id: 'grayscale-image',
     slug: 'grayscale-image',
     name: 'Grayscale Image',
-    description: 'Convert images to grayscale — batch up to 50 images.',
+    description: 'Convert images to grayscale or black & white — batch up to 50 images.',
     category: 'image',
     icon: Palette,
-    component: () => import('../components/tools/GrayscaleTool'),
+    component: () => import('../components/tools/GrayscaleImageTool'),
     searchTerms: ['grayscale image', 'black and white image', 'monochrome image'],
     isPopular: true,
     processingMode: 'local',
     supportsBatch: true,
     maxFiles: 50,
     acceptedFormats: ['jpg', 'jpeg', 'png', 'webp'],
-    outputFormats: ['jpg', 'png', 'webp'],
+    outputFormats: ['jpg', 'png'],
     seo: { title: 'Grayscale Image Online Free', description: 'Convert images to grayscale online free with DocBit.', keywords: ['grayscale image', 'black and white'] },
   },
 
@@ -526,12 +535,15 @@ export const getToolsByCategory = (category: string): ToolDefinition[] =>
 
 export const searchTools = (query: string): ToolDefinition[] => {
   const q = query.toLowerCase().trim();
-  if (!q) return getActiveTools();
-  return TOOL_REGISTRY.filter((t) => {
-    if (t.comingSoon) return false;
+  const base = !q ? TOOL_REGISTRY : TOOL_REGISTRY.filter((t) => {
     const haystack = [t.name, t.description, t.category, ...(t.searchTerms || []), ...t.seo.keywords]
       .join(' ')
       .toLowerCase();
     return haystack.includes(q);
+  });
+  return base.sort((a, b) => {
+    if (a.comingSoon && !b.comingSoon) return 1;
+    if (!a.comingSoon && b.comingSoon) return -1;
+    return 0;
   });
 };

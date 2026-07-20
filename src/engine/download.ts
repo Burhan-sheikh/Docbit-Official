@@ -1,3 +1,4 @@
+import JSZip from 'jszip';
 import type { ProcessingResult } from './types';
 
 const createdUrls = new Set<string>();
@@ -41,6 +42,34 @@ export async function downloadResults(results: ProcessingResult[]): Promise<void
     await downloadResult(result);
     await new Promise((r) => setTimeout(r, 200));
   }
+}
+
+export async function downloadAsZip(
+  results: ProcessingResult[],
+  zipName: string
+): Promise<void> {
+  if (results.length === 0) return;
+  const zip = new JSZip();
+  const usedNames = new Set<string>();
+
+  for (const result of results) {
+    let name = result.filename;
+    let counter = 1;
+    while (usedNames.has(name)) {
+      const dot = result.filename.lastIndexOf('.');
+      if (dot > 0) {
+        name = `${result.filename.slice(0, dot)}_${counter}${result.filename.slice(dot)}`;
+      } else {
+        name = `${result.filename}_${counter}`;
+      }
+      counter++;
+    }
+    usedNames.add(name);
+    zip.file(name, result.blob);
+  }
+
+  const blob = await zip.generateAsync({ type: 'blob' });
+  downloadBlob(blob, zipName.endsWith('.zip') ? zipName : `${zipName}.zip`);
 }
 
 export async function shareResult(result: ProcessingResult, title = 'DocBit'): Promise<boolean> {

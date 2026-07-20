@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { Sparkles, ArrowLeft, Bell } from 'lucide-react';
+import { Sparkles, ArrowLeft, Bell, Clock } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
 import { SEO } from '../SEO';
 import { getToolBySlug } from '../../tools/registry';
@@ -38,6 +38,11 @@ export default function ComingSoonTool() {
           <Sparkles className="w-10 h-10" />
         </div>
         <div className="space-y-3">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-full text-[10px] font-black uppercase tracking-widest">
+              <Clock className="w-3 h-3" /> Coming Soon
+            </span>
+          </div>
           <h1 className="text-3xl font-black tracking-tight dark:text-white uppercase italic">{tool?.name || 'Coming Soon'}</h1>
           <p className="text-neutral-500 dark:text-neutral-400 font-medium max-w-md mx-auto">
             {tool?.description || 'This tool is on the way. We are building it with the same privacy-first, on-device processing you expect from DocBit.'}

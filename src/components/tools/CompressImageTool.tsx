@@ -101,7 +101,7 @@ export default function CompressImageTool() {
     validation: {
       acceptedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
       acceptedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
-      maxFiles: 20,
+      maxFiles: 50,
       minFiles: 1,
       maxFileSizeMb: 50,
       allowDuplicates: false,
@@ -136,6 +136,8 @@ export default function CompressImageTool() {
             isDownloaded={isDownloaded}
             onDownload={handleDownload}
             onDownloadAll={engine.downloadAll}
+            onDownloadOne={engine.download}
+            onDownloadZip={engine.downloadZip}
             onReset={() => { engine.reset(); setIsDownloaded(false); }}
             onBack={() => engine.reset()}
             elapsedMs={engine.elapsedMs}
@@ -149,7 +151,7 @@ export default function CompressImageTool() {
           validation={{
             acceptedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
             acceptedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
-            maxFiles: 20,
+            maxFiles: 50,
             minFiles: 1,
             maxFileSizeMb: 50,
             allowDuplicates: false,
