@@ -7,7 +7,8 @@ import { NavigationConfirmModal } from '../NavigationConfirmModal';
 import { Trash2, ArrowUp, ArrowDown, Download, Loader as Loader2, Wand as Wand2, FileText, Plus, Settings2, Combine, Shield, Maximize, Zap, Square, ShieldCheck, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { readFileAsArrayBuffer, cn, formatBytes } from '../../lib/utils';
-import { DownloadResult } from '../DownloadResult';
+import { ResultPanel } from '../engine/ResultPanel';
+import type { ProcessingResult } from '../../engine/types';
 import { SEO } from '../SEO';
 import { ToolInfo } from '../ToolInfo';
 import { ToolContent } from '../ToolContent';
@@ -35,7 +36,7 @@ export default function MergeTool() {
   const [isAddingFiles, setIsAddingFiles] = useState(false);
   const [progress, setProgress] = useState(0);
   const [processingStage, setProcessingStage] = useState('');
-  const [result, setResult] = useState<{ url: string; size: number } | null>(null);
+  const [result, setResult] = useState<ProcessingResult | null>(null);
   const [isDownloaded, setIsDownloaded] = useState(false);
 
   // Options
@@ -126,7 +127,7 @@ export default function MergeTool() {
       
       const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-      setResult({ url, size: blob.size });
+      setResult({ blob, url, filename: 'merged_docbit.pdf', mimeType: 'application/pdf', size: blob.size });
       setIsDownloaded(false);
     } catch (error) {
       console.error('Merge error:', error);
@@ -144,13 +145,13 @@ export default function MergeTool() {
     if (!result) return;
     const link = document.createElement('a');
     link.href = result.url;
-    link.download = 'merged.pdf';
+    link.download = result.filename;
     link.click();
     setIsDownloaded(true);
     track({
       toolId: tool.id,
       toolName: tool.name,
-      filename: 'merged.pdf',
+      filename: result.filename,
       outputType: 'pdf',
       fileSize: result.size,
       success: true,
@@ -179,13 +180,15 @@ export default function MergeTool() {
 
       <AnimatePresence>
         {result && (
-          <DownloadResult 
-            filename="merged_docbit.pdf" 
-            size={result.size} 
-            onDownload={handleDownload} 
+          <ResultPanel
+            open
+            results={[result]}
             isDownloaded={isDownloaded}
+            onDownload={handleDownload}
+            onDownloadOne={handleDownload}
+            onReset={() => { setFiles([]); setResult(null); setIsDownloaded(false); }}
             onBack={() => setResult(null)}
-            onReset={() => { setFiles([]); setResult(null); setIsDownloaded(false); }} 
+            title="Merge Complete"
           />
         )}
       </AnimatePresence>
@@ -193,7 +196,7 @@ export default function MergeTool() {
       {files.length === 0 ? (
         <Dropzone 
           onFilesSelected={handleFiles} 
-          maxFiles={10} 
+          maxFiles={20} 
           isProcessing={isAddingFiles}
           label="Select PDF Documents" 
         />

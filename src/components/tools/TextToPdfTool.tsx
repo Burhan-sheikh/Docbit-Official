@@ -170,6 +170,8 @@ export default function TextToPdfTool() {
             results={engine.results}
             isDownloaded={isDownloaded}
             onDownload={handleDownload}
+            onDownloadOne={engine.download}
+            onDownloadZip={engine.downloadZip}
             onReset={() => { engine.reset(); setIsDownloaded(false); }}
             onBack={() => engine.reset()}
             elapsedMs={engine.elapsedMs}

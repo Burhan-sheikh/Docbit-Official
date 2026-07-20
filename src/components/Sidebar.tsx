@@ -5,7 +5,7 @@ import { CATEGORIES } from '../tools/categories';
 import { CATEGORY_ICONS } from '../tools/registry';
 import { useAuth } from '../hooks/useAuth';
 import { cn } from '../lib/utils';
-import { ShieldCheck, Moon, Sun, FileText, Shield, LayoutDashboard, LogIn, ChevronDown, CircleUser as UserCircle, LogOut, Sparkles, X } from 'lucide-react';
+import { ShieldCheck, Moon, Sun, FileText, Shield, LogIn, ChevronDown, CircleUser as UserCircle, LogOut, Sparkles, X, LayoutGrid } from 'lucide-react';
 
 interface SidebarProps {
   onSelect?: () => void;
@@ -47,7 +47,7 @@ export function Sidebar({ onSelect }: SidebarProps) {
 
   const goToProfile = () => {
     setProfileOpen(false);
-    navigate('/dashboard');
+    navigate('/all-tools');
     onSelect?.();
   };
 
@@ -89,31 +89,17 @@ export function Sidebar({ onSelect }: SidebarProps) {
 
       <nav className="flex-1 overflow-y-auto px-4 py-2 space-y-1 scrollbar-thin scrollbar-thumb-neutral-200 dark:scrollbar-thumb-neutral-800">
         <Link
-          to="/"
+          to="/all-tools"
           onClick={onSelect}
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-sm group",
-            location.pathname === '/'
+            location.pathname === '/all-tools'
               ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
               : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
           )}
         >
-          <FileText className="w-5 h-5" />
+          <LayoutGrid className="w-5 h-5" />
           All Tools
-        </Link>
-
-        <Link
-          to="/dashboard"
-          onClick={onSelect}
-          className={cn(
-            "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-medium text-sm group",
-            location.pathname === '/dashboard'
-              ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-              : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-50 dark:hover:bg-neutral-800/50"
-          )}
-        >
-          <LayoutDashboard className="w-5 h-5" />
-          Dashboard
         </Link>
 
         {/* Popular Tools */}
@@ -284,8 +270,8 @@ export function Sidebar({ onSelect }: SidebarProps) {
                   onClick={goToProfile}
                   className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                  <UserCircle className="w-4 h-4" />
-                  Profile
+                  <LayoutGrid className="w-4 h-4" />
+                  All Tools
                 </button>
                 <div className="h-px bg-neutral-100 dark:bg-neutral-800" />
                 <button

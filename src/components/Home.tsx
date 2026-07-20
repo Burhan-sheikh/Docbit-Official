@@ -317,7 +317,7 @@ export function Home() {
               </h2>
             </div>
             <Link
-              to="/"
+              to="/all-tools"
               className="hidden sm:flex items-center gap-1.5 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
             >
               View All <ArrowRight className="w-4 h-4" />
@@ -378,7 +378,7 @@ export function Home() {
 
           <div className="flex justify-center sm:hidden">
             <Link
-              to="/"
+              to="/all-tools"
               className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-2xl bg-blue-600 text-white text-sm font-black uppercase tracking-widest"
             >
               View All <ArrowRight className="w-4 h-4" />
@@ -588,7 +588,7 @@ export function Home() {
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 <Link
-                  to="/"
+                  to="/all-tools"
                   className="inline-flex items-center gap-2 px-6 py-3 bg-white text-blue-600 font-black rounded-2xl hover:bg-blue-50 transition-all active:scale-95 text-sm uppercase tracking-widest"
                 >
                   Explore Tools <ArrowRight className="w-4 h-4" />
@@ -687,7 +687,7 @@ function UploadCard() {
               </p>
             </div>
             <Link
-              to="/"
+              to="/all-tools"
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-widest rounded-2xl transition-all active:scale-95"
             >
               Browse Tools <ArrowRight className="w-3.5 h-3.5" />

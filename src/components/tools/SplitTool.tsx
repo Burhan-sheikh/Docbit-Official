@@ -8,7 +8,8 @@ import { NavigationConfirmModal } from '../NavigationConfirmModal';
 import { Scissors, Download, Loader as Loader2, Settings2, FileText, Shield, LayoutGrid, Check, Layers, CircleAlert as AlertCircle, FileBox, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { readFileAsArrayBuffer, cn, formatBytes } from '../../lib/utils';
-import { DownloadResult } from '../DownloadResult';
+import { ResultPanel } from '../engine/ResultPanel';
+import type { ProcessingResult } from '../../engine/types';
 import { ImageViewer } from '../ImageViewer';
 import { SEO } from '../SEO';
 import { ToolContent } from '../ToolContent';
@@ -43,7 +44,7 @@ export default function SplitTool() {
   const [isSplitting, setIsSplitting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [processingStage, setProcessingStage] = useState('');
-  const [result, setResult] = useState<{ url: string; size: number } | null>(null);
+  const [result, setResult] = useState<ProcessingResult | null>(null);
   const [isDownloaded, setIsDownloaded] = useState(false);
   
   const [viewerImage, setViewerImage] = useState<string | null>(null);
@@ -208,7 +209,7 @@ export default function SplitTool() {
       const pdfBytes = await outPdf.save();
       const blob = new Blob([pdfBytes], { type: 'application/pdf' });
       const url = URL.createObjectURL(blob);
-      setResult({ url, size: blob.size });
+      setResult({ blob, url, filename: `split_${file?.name || 'document.pdf'}`, mimeType: 'application/pdf', size: blob.size });
     } catch (e) {
       console.error('Split failed:', e);
       alert('Failed to split PDF. Please check the file.');
@@ -225,13 +226,13 @@ export default function SplitTool() {
     if (!result) return;
     const link = document.createElement('a');
     link.href = result.url;
-    link.download = `split_${file?.name}`;
+    link.download = result.filename;
     link.click();
     setIsDownloaded(true);
     track({
       toolId: tool.id,
       toolName: tool.name,
-      filename: file?.name,
+      filename: result.filename,
       outputType: 'pdf',
       fileSize: result.size,
       success: true,
@@ -260,13 +261,15 @@ export default function SplitTool() {
 
       <AnimatePresence mode="wait">
         {result && (
-          <DownloadResult 
-            filename={`split_${file?.name}`}
-            size={result.size}
-            onDownload={handleDownload}
+          <ResultPanel
+            open
+            results={[result]}
             isDownloaded={isDownloaded}
-            onBack={() => setResult(null)}
+            onDownload={handleDownload}
+            onDownloadOne={handleDownload}
             onReset={() => { setFile(null); setPdfDoc(null); setResult(null); setIsDownloaded(false); setThumbnails([]); setSelectedPages(new Set()); setRangeStr(''); }}
+            onBack={() => setResult(null)}
+            title="Split Complete"
           />
         )}
       </AnimatePresence>

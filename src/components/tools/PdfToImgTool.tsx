@@ -10,7 +10,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { readFileAsArrayBuffer, cn, formatBytes } from '../../lib/utils';
 import JSZip from 'jszip';
 import { ImageViewer } from '../ImageViewer';
-import { DownloadResult } from '../DownloadResult';
+import { ResultPanel } from '../engine/ResultPanel';
+import type { ProcessingResult } from '../../engine/types';
 import { SEO } from '../SEO';
 import { ToolInfo } from '../ToolInfo';
 import { ToolContent } from '../ToolContent';
@@ -54,7 +55,7 @@ export default function PdfToImgTool() {
   const [selectedPages, setSelectedPages] = useState<Set<number>>(new Set());
   const [totalPages, setTotalPages] = useState(0);
   
-  const [result, setResult] = useState<{ url: string; size: number; isZip: boolean } | null>(null);
+  const [result, setResult] = useState<ProcessingResult | null>(null);
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [viewerImg, setViewerImg] = useState<string | null>(null);
   const [highResViewerImage, setHighResViewerImage] = useState<string | null>(null);
@@ -257,7 +258,8 @@ export default function PdfToImgTool() {
       setProgress(100);
       const content = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(content);
-      setResult({ url, size: content.size, isZip: true });
+      const baseName = file.name.replace(/\.[^/.]+$/, '');
+      setResult({ blob: content, url, filename: `${baseName}_images.zip`, mimeType: 'application/zip', size: content.size });
       setIsDownloaded(false);
     } catch (e) {
       console.error(e);
@@ -275,14 +277,14 @@ export default function PdfToImgTool() {
     if (!result) return;
     const link = document.createElement('a');
     link.href = result.url;
-    link.download = result.isZip ? 'images.zip' : `image.${format}`;
+    link.download = result.filename;
     link.click();
     setIsDownloaded(true);
     track({
       toolId: tool.id,
       toolName: tool.name,
       filename: file?.name,
-      outputType: result.isZip ? 'zip' : format,
+      outputType: 'zip',
       fileSize: result.size,
       success: true,
       processingMethod: 'local',
@@ -310,13 +312,15 @@ export default function PdfToImgTool() {
 
       <AnimatePresence>
         {result && (
-          <DownloadResult 
-            filename={result.isZip ? `extracted_from_${file?.name}.zip` : `extracted_page.${format}`}
-            size={result.size}
-            onDownload={handleDownload}
+          <ResultPanel
+            open
+            results={[result]}
             isDownloaded={isDownloaded}
-            onBack={() => setResult(null)}
+            onDownload={handleDownload}
+            onDownloadOne={handleDownload}
             onReset={() => { setFile(null); setPages([]); setResult(null); setIsDownloaded(false); setRangeStr(''); setSelectedPages(new Set()); }}
+            onBack={() => setResult(null)}
+            title="Export Complete"
           />
         )}
       </AnimatePresence>

@@ -62,6 +62,7 @@ const nakedTemplate = getNakedTemplate(template);
 // Build the routes list dynamically
 const routes: any[] = [
   { path: '/', config: SEO_CONFIG.home, type: 'home' },
+  { path: '/all-tools', config: { title: `All Tools | ${SITE_NAME}`, description: 'Browse all 50 free file conversion tools from DocBit. Convert images, PDFs, documents, spreadsheets, and presentations — fast, private, and on-device.', keywords: 'file converter, image converter, pdf tools, online tools, free', canonical: `${APP_DOMAIN}/all-tools`, ogImage: GLOBAL_OG_IMAGE }, type: 'page' },
   { path: '/about', config: SEO_CONFIG.about, type: 'page' },
   { path: '/contact', config: SEO_CONFIG.contact, type: 'page' },
   { path: '/privacy', config: SEO_CONFIG.privacy || { title: `Privacy Policy | ${SITE_NAME}`, description: 'Our commitment to your data security.', canonical: `${APP_DOMAIN}/privacy`, ogImage: GLOBAL_OG_IMAGE }, type: 'page' },
