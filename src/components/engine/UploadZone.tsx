@@ -113,11 +113,24 @@ export function UploadZone({
               <h3 className="mb-4 text-2xl font-black tracking-tighter text-neutral-900 dark:text-neutral-100 italic">
                 {label}
               </h3>
-              <div className="flex flex-col gap-2 mb-10">
+              <div className="flex flex-col gap-3 mb-10">
                 <p className="text-sm text-neutral-500 dark:text-neutral-400 font-medium max-w-xs mx-auto">
                   {validation.maxFiles === 1
                     ? 'Single file mode.'
                     : `Batch mode: up to ${validation.maxFiles} files.`}
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-1.5 max-w-sm mx-auto">
+                  {validation.acceptedExtensions.slice(0, 8).map((ext) => (
+                    <span
+                      key={ext}
+                      className="px-2.5 py-1 text-[9px] font-black uppercase tracking-widest bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 rounded-md"
+                    >
+                      {ext === 'jpeg' ? 'JPG' : ext.toUpperCase()}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+                  Max {validation.maxFileSizeMb}MB per file
                 </p>
                 <div className="flex items-center justify-center gap-4 text-[10px] font-black uppercase tracking-widest text-neutral-400">
                   <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Private</span>

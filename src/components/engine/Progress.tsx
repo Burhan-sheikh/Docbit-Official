@@ -1,14 +1,43 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Loader as Loader2, CircleCheck as CheckCircle2, Circle as XCircle, Clock } from 'lucide-react';
+import { Loader as Loader2, CircleCheck as CheckCircle2, Circle as XCircle, Clock, FileStack, Eye, Wand as Wand2, Sparkles, PackageCheck } from 'lucide-react';
 import type { ProgressUpdate } from '../../engine/types';
+import { cn } from '../../lib/utils';
+
+type StageKey = 'preparing' | 'reading' | 'converting' | 'optimizing' | 'finishing' | 'completed';
+
+const STAGE_META: Record<StageKey, { label: string; icon: typeof FileStack }> = {
+  preparing: { label: 'Preparing', icon: FileStack },
+  reading: { label: 'Reading', icon: Eye },
+  converting: { label: 'Converting', icon: Wand2 },
+  optimizing: { label: 'Optimizing', icon: Sparkles },
+  finishing: { label: 'Finishing', icon: PackageCheck },
+  completed: { label: 'Completed', icon: CheckCircle2 },
+};
+
+function classifyStage(stage: string, percent: number): StageKey {
+  const s = stage.toLowerCase();
+  if (s.includes('complete') || percent >= 100) return 'completed';
+  if (s.includes('start') || s.includes('prepar')) return 'preparing';
+  if (s.includes('read') || s.includes('load') || s.includes('decode')) return 'reading';
+  if (s.includes('compress') || s.includes('optim') || s.includes('finali') || s.includes('finish')) return 'optimizing';
+  if (s.includes('convert') || s.includes('process') || s.includes('apply') || s.includes('grayscale')) return 'converting';
+  if (percent >= 85) return 'finishing';
+  return 'converting';
+}
+
+const ORDER: StageKey[] = ['preparing', 'reading', 'converting', 'optimizing', 'finishing', 'completed'];
 
 export function ProgressBar({ progress }: { progress: ProgressUpdate | null }) {
   if (!progress) return null;
+  const stageKey = classifyStage(progress.stage, progress.percent);
+  const currentIdx = ORDER.indexOf(stageKey);
+  const meta = STAGE_META[stageKey];
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-black uppercase text-blue-600 tracking-widest">
-          {progress.stage}
+          {meta.label}
         </span>
         <span className="text-[10px] font-black text-blue-600">{progress.percent}%</span>
       </div>
@@ -18,6 +47,45 @@ export function ProgressBar({ progress }: { progress: ProgressUpdate | null }) {
           animate={{ width: `${progress.percent}%` }}
           className="h-full bg-blue-600 transition-all duration-300"
         />
+      </div>
+      <div className="flex items-center gap-1.5">
+        {ORDER.map((key) => {
+          const Icon = STAGE_META[key].icon;
+          const idx = ORDER.indexOf(key);
+          const done = idx < currentIdx;
+          const active = idx === currentIdx;
+          return (
+            <div
+              key={key}
+              className="flex items-center gap-1.5 flex-1"
+            >
+              <div
+                className={cn(
+                  'flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 shrink-0',
+                  done && 'bg-blue-600 text-white',
+                  active && 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 ring-2 ring-blue-500/40',
+                  !done && !active && 'bg-neutral-100 dark:bg-neutral-800 text-neutral-300 dark:text-neutral-600'
+                )}
+              >
+                {done ? (
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                ) : active ? (
+                  <Icon className="w-3.5 h-3.5 animate-pulse" />
+                ) : (
+                  <Icon className="w-3.5 h-3.5" />
+                )}
+              </div>
+              {idx < ORDER.length - 1 && (
+                <div
+                  className={cn(
+                    'h-0.5 flex-1 rounded-full transition-all duration-300',
+                    done ? 'bg-blue-600' : 'bg-neutral-100 dark:bg-neutral-800'
+                  )}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
       {progress.message && (
         <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">
