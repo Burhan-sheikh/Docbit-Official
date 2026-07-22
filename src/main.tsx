@@ -10,6 +10,7 @@ import './index.css';
 const ToolPage = lazy(() => import('./components/ToolPage'));
 const CategoryPage = lazy(() => import('./components/CategoryPage'));
 const AllToolsPage = lazy(() => import('./components/AllToolsPage'));
+const ImageToolsPage = lazy(() => import('./components/ImageToolsPage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const Terms = lazy(() => import('./components/Terms'));
 const About = lazy(() => import('./components/About'));
@@ -31,6 +32,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: 'all-tools', element: <AllToolsPage /> },
+      { path: 'image-tools', element: <ImageToolsPage /> },
       { path: 'tools/:toolSlug', element: <ToolPage /> },
       { path: 'category/:categoryId', element: <CategoryPage /> },
       { path: 'login', element: <LoginPage /> },

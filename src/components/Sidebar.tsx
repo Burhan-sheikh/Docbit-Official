@@ -158,7 +158,7 @@ export function Sidebar({ onSelect }: SidebarProps) {
                 return (
                   <div key={cat.id} className="space-y-1">
                     <Link
-                      to={`/category/${cat.id}`}
+                      to={cat.id === 'image' ? '/image-tools' : `/category/${cat.id}`}
                       onClick={onSelect}
                       className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-black uppercase tracking-widest text-neutral-700 dark:text-neutral-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
