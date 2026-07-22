@@ -1,9 +1,7 @@
 import React from 'react';
-import { Shield, Zap, Lock, Cpu, Star, CircleCheck as CheckCircle2, Globe, Database, ArrowRight } from 'lucide-react';
+import { Shield, Zap, Lock, Cpu, Star, CheckCircle2, Globe, Database, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { TOOLS } from '../constants/tools';
-import { getToolsByCategory, TOOL_REGISTRY } from '../tools/registry';
-import { ImageToolGrid } from './ImageToolCard';
 
 interface ToolContentProps {
   toolId: string;
@@ -15,11 +13,6 @@ interface ToolContentProps {
 
 export const ToolContent: React.FC<ToolContentProps> = ({ toolId, toolName, toolType, description, longContent }) => {
   const otherTools = TOOLS.filter(t => t.id !== toolId);
-  const tool = TOOL_REGISTRY.find(t => t.id === toolId);
-  const isImageTool = tool?.category === 'image';
-  const relatedImageTools = isImageTool
-    ? getToolsByCategory('image').filter(t => t.id !== toolId)
-    : [];
 
   return (
     <div className="mt-24 max-w-5xl mx-auto space-y-32 pb-40 px-6 overflow-hidden">
@@ -166,49 +159,37 @@ export const ToolContent: React.FC<ToolContentProps> = ({ toolId, toolName, tool
       <section className="space-y-16 border-t border-neutral-100 dark:border-neutral-800 pt-32">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div className="space-y-4">
-            <h2 className="text-4xl font-black text-neutral-900 dark:text-white tracking-tight leading-none uppercase italic">
-              {isImageTool ? 'More Image Tools' : 'Discover More Tools'}
-            </h2>
+            <h2 className="text-4xl font-black text-neutral-900 dark:text-white tracking-tight leading-none uppercase italic">Discover More Tools</h2>
             <p className="text-neutral-500 dark:text-neutral-400 font-medium text-lg uppercase italic">
-              {isImageTool ? 'Explore more image conversion and optimization tools.' : 'Professional utilities for every document need.'}
+              Professional utilities for every document need.
             </p>
           </div>
-          {isImageTool ? (
-            <Link to="/image-tools" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-blue-600 hover:gap-3 transition-all group">
-              View All Image Tools <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          ) : (
-            <Link to="/" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-blue-600 hover:gap-3 transition-all group">
-              View All Tools <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          )}
+          <Link to="/" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-blue-600 hover:gap-3 transition-all group">
+            View All Tools <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
 
-        {isImageTool ? (
-          <ImageToolGrid tools={relatedImageTools} />
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {otherTools.map((tool) => (
-              <Link 
-                key={tool.id} 
-                to={tool.href}
-                className="p-8 rounded-[32px] bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 hover:border-blue-500/30 group transition-all relative overflow-hidden"
-              >
-                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/10 transition-colors" />
-                <div className="mb-6 w-12 h-12 rounded-2xl bg-white dark:bg-neutral-800 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform shadow-sm">
-                  {tool.icon}
-                </div>
-                <h3 className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-tight italic mb-2">{tool.name}</h3>
-                <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed mb-6 line-clamp-2">
-                  {tool.description}
-                </p>
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                  Launch <ArrowRight className="w-3 h-3" />
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {otherTools.map((tool) => (
+            <Link 
+              key={tool.id} 
+              to={tool.href}
+              className="p-8 rounded-[32px] bg-neutral-50 dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 hover:border-blue-500/30 group transition-all relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-600/10 transition-colors" />
+              <div className="mb-6 w-12 h-12 rounded-2xl bg-white dark:bg-neutral-800 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform shadow-sm">
+                {tool.icon}
+              </div>
+              <h3 className="text-sm font-black text-neutral-900 dark:text-white uppercase tracking-tight italic mb-2">{tool.name}</h3>
+              <p className="text-[10px] text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed mb-6 line-clamp-2">
+                {tool.description}
+              </p>
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                Launch <ArrowRight className="w-3 h-3" />
+              </div>
+            </Link>
+          ))}
+        </div>
       </section>
     </div>
   );

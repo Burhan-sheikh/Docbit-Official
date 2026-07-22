@@ -403,8 +403,6 @@ export function Home() {
               const CatIcon = CATEGORY_ICONS[cat.id];
               const count = TOOL_REGISTRY.filter((t) => t.category === cat.id).length;
               const activeCount = getToolsByCategory(cat.id).length;
-              const isImageCat = cat.id === 'image';
-              const catLink = isImageCat ? '/image-tools' : `/category/${cat.id}`;
               return (
                 <motion.div
                   key={cat.id}
@@ -415,7 +413,7 @@ export function Home() {
                   whileHover={{ y: -4 }}
                 >
                   <Link
-                    to={catLink}
+                    to={`/category/${cat.id}`}
                     className="block p-8 rounded-3xl bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300"
                   >
                     <div className="flex items-center justify-between mb-6">
@@ -432,12 +430,7 @@ export function Home() {
                     <p className="text-sm text-neutral-500 dark:text-neutral-400 font-medium leading-relaxed">
                       {cat.description}
                     </p>
-                    {isImageCat && (
-                      <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest text-blue-600 hover:gap-2.5 transition-all">
-                        View All Image Tools <ArrowRight className="w-3.5 h-3.5" />
-                      </span>
-                    )}
-                    {activeCount === 0 && !isImageCat && (
+                    {activeCount === 0 && (
                       <p className="mt-3 text-[10px] font-black uppercase tracking-widest text-amber-500">
                         Coming Soon
                       </p>
