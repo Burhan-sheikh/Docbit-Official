@@ -29,16 +29,20 @@ export function FileQueue({ queue, onRemove, onReorder, onPreview, showReorder }
                 : 'border-neutral-200 dark:border-neutral-800 hover:border-blue-500 hover:shadow-lg'
             )}
           >
-            <div
+            <button
               onClick={() => onPreview?.(item)}
-              className="relative w-16 aspect-[1/1.414] bg-neutral-50 dark:bg-neutral-800 rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800 flex-shrink-0 flex items-center justify-center"
+              disabled={!item.previewUrl}
+              className={cn(
+                'relative w-16 aspect-[1/1.414] bg-neutral-50 dark:bg-neutral-800 rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800 flex-shrink-0 flex items-center justify-center transition-all',
+                item.previewUrl && 'hover:ring-2 hover:ring-blue-500/40 cursor-pointer'
+              )}
             >
               {item.previewUrl ? (
                 <img src={item.previewUrl} alt={item.file.name} className="w-full h-full object-cover" />
               ) : (
                 <FileText className="w-8 h-8 text-neutral-300" />
               )}
-            </div>
+            </button>
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">

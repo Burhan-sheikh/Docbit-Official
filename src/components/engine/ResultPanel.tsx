@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Download, RotateCcw, CircleCheck as CheckCircle2, FileText, ArrowLeft, X, Share2, Clock, Archive, Pencil, Check, MoveVertical as MoreVertical, Image as ImageIcon } from 'lucide-react';
+import { RotateCcw, CircleCheck as CheckCircle2, FileText, ArrowLeft, X, Share2, Archive, Pencil, Check, MoveVertical as MoreVertical, Trash2, Download } from 'lucide-react';
 import { formatBytes, cn } from '../../lib/utils';
+import { ImagePreviewModal, type PreviewImage } from './ImagePreviewModal';
 import type { ProcessingResult } from '../../engine/types';
 
 interface ResultPanelProps {
@@ -15,6 +16,7 @@ interface ResultPanelProps {
   onDownloadZip?: (zipName: string) => void;
   onShare?: (result: ProcessingResult) => void;
   onRename?: (index: number, newName: string) => void;
+  onDelete?: (index: number) => void;
   onReset: () => void;
   onBack: () => void;
   elapsedMs?: number;
@@ -31,6 +33,7 @@ export function ResultPanel({
   onDownloadZip,
   onShare,
   onRename,
+  onDelete,
   onReset,
   onBack,
   elapsedMs,
@@ -41,6 +44,7 @@ export function ResultPanel({
   const [renamingIndex, setRenamingIndex] = useState<number | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [menuIndex, setMenuIndex] = useState<number | null>(null);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
 
   if (!open || results.length === 0) return null;
   const first = results[0];
@@ -66,6 +70,18 @@ export function ResultPanel({
     else onDownload(r);
     setMenuIndex(null);
   };
+
+  const handleDelete = (i: number) => {
+    onDelete?.(i);
+    setMenuIndex(null);
+  };
+
+  const previewImages: PreviewImage[] = results.map((r) => ({
+    url: r.url,
+    filename: r.filename,
+    mimeType: r.mimeType,
+    size: r.size,
+  }));
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 h-[100dvh]">
@@ -140,14 +156,21 @@ export function ResultPanel({
               <div className="space-y-2">
                 {results.map((r, i) => (
                   <div key={i} className="group relative bg-neutral-50 dark:bg-neutral-800/50 p-3 rounded-2xl border border-neutral-100 dark:border-neutral-800 flex items-center gap-3">
-                    {/* Thumbnail */}
-                    <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 flex-shrink-0 flex items-center justify-center">
+                    {/* Thumbnail — click to preview */}
+                    <button
+                      onClick={() => isImage(r.mimeType) && setPreviewIndex(i)}
+                      className={cn(
+                        'relative w-12 h-12 rounded-xl overflow-hidden bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 flex-shrink-0 flex items-center justify-center transition-all',
+                        isImage(r.mimeType) && 'hover:ring-2 hover:ring-blue-500/40 cursor-pointer'
+                      )}
+                      title={isImage(r.mimeType) ? 'Click to preview' : r.filename}
+                    >
                       {isImage(r.mimeType) ? (
                         <img src={r.url} alt={r.filename} className="w-full h-full object-cover" />
                       ) : (
                         <FileText className="w-6 h-6 text-neutral-400" />
                       )}
-                    </div>
+                    </button>
 
                     {/* Filename + size */}
                     <div className="flex-1 min-w-0">
@@ -173,33 +196,35 @@ export function ResultPanel({
                       )}
                     </div>
 
-                    {/* Actions */}
+                    {/* Actions — 3-dot menu only */}
                     {renamingIndex !== i && (
                       <div className="flex items-center gap-1">
-                        <button onClick={() => handleDownloadOne(r)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all" title="Download">
-                          <Download className="w-4 h-4" />
-                        </button>
                         {onShare && typeof navigator !== 'undefined' && navigator.share && isImage(r.mimeType) && (
                           <button onClick={() => onShare(r)} className="p-2 text-neutral-400 hover:text-blue-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-all" title="Share">
                             <Share2 className="w-4 h-4" />
                           </button>
                         )}
                         <div className="relative">
-                          <button onClick={() => setMenuIndex(menuIndex === i ? null : i)} className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-all" title="More">
+                          <button onClick={() => setMenuIndex(menuIndex === i ? null : i)} className="p-2 text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-all" title="More options">
                             <MoreVertical className="w-4 h-4" />
                           </button>
                           {menuIndex === i && (
                             <>
                               <div className="fixed inset-0 z-20" onClick={() => setMenuIndex(null)} />
                               <div className="absolute right-0 top-full mt-1 z-30 bg-white dark:bg-neutral-900 rounded-xl shadow-xl border border-neutral-100 dark:border-neutral-800 overflow-hidden min-w-[140px]">
+                                <button onClick={() => handleDownloadOne(r)} className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-colors">
+                                  <Download className="w-3.5 h-3.5" /> Download
+                                </button>
                                 {onRename && (
                                   <button onClick={() => startRename(i)} className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-colors">
                                     <Pencil className="w-3.5 h-3.5" /> Rename
                                   </button>
                                 )}
-                                <button onClick={() => handleDownloadOne(r)} className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-neutral-700 dark:text-neutral-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-600 transition-colors">
-                                  <Download className="w-3.5 h-3.5" /> Download
-                                </button>
+                                {onDelete && (
+                                  <button onClick={() => handleDelete(i)} className="w-full flex items-center gap-2 px-3 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                                    <Trash2 className="w-3.5 h-3.5" /> Delete
+                                  </button>
+                                )}
                               </div>
                             </>
                           )}
@@ -230,6 +255,15 @@ export function ResultPanel({
           </div>
         </div>
       </motion.div>
+
+      {/* Full-screen image preview */}
+      <ImagePreviewModal
+        open={previewIndex !== null}
+        images={previewImages}
+        index={previewIndex ?? 0}
+        onClose={() => setPreviewIndex(null)}
+        onNavigate={setPreviewIndex}
+      />
     </div>,
     document.body
   );

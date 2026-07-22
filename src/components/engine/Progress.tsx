@@ -1,31 +1,24 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { Loader as Loader2, CircleCheck as CheckCircle2, Circle as XCircle, Clock, FileStack, Eye, Wand as Wand2, Sparkles, PackageCheck } from 'lucide-react';
+import { Loader as Loader2, CircleCheck as CheckCircle2, Circle as XCircle, Clock, Wand as Wand2, PackageCheck } from 'lucide-react';
 import type { ProgressUpdate } from '../../engine/types';
 import { cn } from '../../lib/utils';
 
-type StageKey = 'preparing' | 'reading' | 'converting' | 'optimizing' | 'finishing' | 'completed';
+type StageKey = 'processing' | 'finalizing' | 'completed';
 
-const STAGE_META: Record<StageKey, { label: string; icon: typeof FileStack }> = {
-  preparing: { label: 'Preparing', icon: FileStack },
-  reading: { label: 'Reading', icon: Eye },
-  converting: { label: 'Converting', icon: Wand2 },
-  optimizing: { label: 'Optimizing', icon: Sparkles },
-  finishing: { label: 'Finishing', icon: PackageCheck },
+const STAGE_META: Record<StageKey, { label: string; icon: typeof Wand2 }> = {
+  processing: { label: 'Processing', icon: Wand2 },
+  finalizing: { label: 'Finalizing', icon: PackageCheck },
   completed: { label: 'Completed', icon: CheckCircle2 },
 };
+
+const ORDER: StageKey[] = ['processing', 'finalizing', 'completed'];
 
 function classifyStage(stage: string, percent: number): StageKey {
   const s = stage.toLowerCase();
   if (s.includes('complete') || percent >= 100) return 'completed';
-  if (s.includes('start') || s.includes('prepar')) return 'preparing';
-  if (s.includes('read') || s.includes('load') || s.includes('decode')) return 'reading';
-  if (s.includes('compress') || s.includes('optim') || s.includes('finali') || s.includes('finish')) return 'optimizing';
-  if (s.includes('convert') || s.includes('process') || s.includes('apply') || s.includes('grayscale')) return 'converting';
-  if (percent >= 85) return 'finishing';
-  return 'converting';
+  if (s.includes('final') || s.includes('finish') || s.includes('done')) return 'finalizing';
+  return 'processing';
 }
-
-const ORDER: StageKey[] = ['preparing', 'reading', 'converting', 'optimizing', 'finishing', 'completed'];
 
 export function ProgressBar({ progress }: { progress: ProgressUpdate | null }) {
   if (!progress) return null;
@@ -41,6 +34,8 @@ export function ProgressBar({ progress }: { progress: ProgressUpdate | null }) {
         </span>
         <span className="text-[10px] font-black text-blue-600">{progress.percent}%</span>
       </div>
+
+      {/* Linear bar */}
       <div className="h-2 w-full bg-neutral-100 dark:bg-neutral-800 rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
@@ -48,45 +43,48 @@ export function ProgressBar({ progress }: { progress: ProgressUpdate | null }) {
           className="h-full bg-blue-600 transition-all duration-300"
         />
       </div>
-      <div className="flex items-center gap-1.5">
+
+      {/* 3-stage stepper aligned to bar */}
+      <div className="flex items-center">
         {ORDER.map((key) => {
           const Icon = STAGE_META[key].icon;
           const idx = ORDER.indexOf(key);
           const done = idx < currentIdx;
           const active = idx === currentIdx;
           return (
-            <div
-              key={key}
-              className="flex items-center gap-1.5 flex-1"
-            >
+            <div key={key} className="flex items-center flex-1 last:flex-none">
               <div
                 className={cn(
-                  'flex items-center justify-center w-6 h-6 rounded-full transition-all duration-300 shrink-0',
+                  'flex items-center justify-center w-7 h-7 rounded-full transition-all duration-300 shrink-0',
                   done && 'bg-blue-600 text-white',
                   active && 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 ring-2 ring-blue-500/40',
                   !done && !active && 'bg-neutral-100 dark:bg-neutral-800 text-neutral-300 dark:text-neutral-600'
                 )}
               >
                 {done ? (
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <CheckCircle2 className="w-4 h-4" />
                 ) : active ? (
-                  <Icon className="w-3.5 h-3.5 animate-pulse" />
+                  <Icon className="w-4 h-4 animate-pulse" />
                 ) : (
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-4 h-4" />
                 )}
               </div>
               {idx < ORDER.length - 1 && (
-                <div
-                  className={cn(
-                    'h-0.5 flex-1 rounded-full transition-all duration-300',
-                    done ? 'bg-blue-600' : 'bg-neutral-100 dark:bg-neutral-800'
-                  )}
-                />
+                <div className="relative h-0.5 flex-1 mx-1 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                  <div
+                    className={cn(
+                      'absolute inset-0 rounded-full transition-all duration-300',
+                      idx < currentIdx ? 'bg-blue-600 w-full' : idx === currentIdx ? 'bg-blue-600' : 'bg-transparent w-0'
+                    )}
+                    style={idx === currentIdx ? { width: `${progress.percent % 100}%` } : undefined}
+                  />
+                </div>
               )}
             </div>
           );
         })}
       </div>
+
       {progress.message && (
         <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-widest">
           {progress.message}

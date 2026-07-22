@@ -9,7 +9,7 @@ import type {
 } from './types';
 import { validateFiles } from './validation';
 import { runProcessing, createAbortController, friendlyError } from './processor';
-import { cleanupAllUrls, downloadResult, downloadResults, downloadAsZip, shareResult } from './download';
+import { cleanupAllUrls, downloadResult, downloadResults, downloadAsZip, shareResult, revokeObjectURL } from './download';
 
 export interface UseToolEngineOptions {
   mode: ProcessingMode;
@@ -47,6 +47,7 @@ export interface ToolEngineState {
   downloadAll: () => Promise<void>;
   downloadZip: (zipName: string) => Promise<void>;
   share: (result: ProcessingResult) => Promise<boolean>;
+  removeResult: (index: number) => void;
   reset: () => void;
 }
 
@@ -209,6 +210,14 @@ export function useToolEngine(opts: UseToolEngineOptions): ToolEngineState {
     [opts.toolName]
   );
 
+  const removeResult = useCallback((index: number) => {
+    setResults((prev) => {
+      const item = prev[index];
+      if (item) revokeObjectURL(item.url);
+      return prev.filter((_, i) => i !== index);
+    });
+  }, []);
+
   const reset = useCallback(() => {
     abortRef.current?.abort();
     clearQueue();
@@ -239,6 +248,7 @@ export function useToolEngine(opts: UseToolEngineOptions): ToolEngineState {
     downloadAll,
     downloadZip,
     share,
+    removeResult,
     reset,
   };
 }
