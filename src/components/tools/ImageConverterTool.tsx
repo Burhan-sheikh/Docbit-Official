@@ -11,7 +11,6 @@ import { UploadZone } from '../../components/engine/UploadZone';
 import { FileQueue } from '../../components/engine/FileQueue';
 import { ProcessingStatus, ProgressBar } from '../../components/engine/Progress';
 import { ResultPanel } from '../../components/engine/ResultPanel';
-import { ImagePreviewModal, type PreviewImage } from '../../components/engine/ImagePreviewModal';
 import { ToolShell } from '../../components/engine/ToolShell';
 import { cn } from '../../lib/utils';
 
@@ -108,7 +107,7 @@ export default function ImageConverterTool() {
 
   const [quality, setQuality] = useState(0.9);
   const [isDownloaded, setIsDownloaded] = useState(false);
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+
   const track = useConversionTracker();
 
   const validation = {
@@ -240,23 +239,12 @@ export default function ImageConverterTool() {
               <ImageIcon className="w-5 h-5 text-blue-600" />
               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400">Image Queue ({engine.queue.length}/50)</h3>
             </div>
-            <FileQueue queue={engine.queue} onRemove={engine.removeFile} onPreview={(item) => {
-              const idx = engine.queue.findIndex((q) => q.id === item.id);
-              if (idx >= 0) setPreviewIndex(idx);
-            }} showReorder onReorder={engine.reorderFile} />
+            <FileQueue queue={engine.queue} onRemove={engine.removeFile} showReorder onReorder={engine.reorderFile} />
           </div>
 
           <ProcessingStatus isProcessing={engine.isProcessing} progress={engine.progress} elapsedMs={engine.elapsedMs} error={engine.error} onCancel={engine.cancel} />
         </div>
       )}
-
-      <ImagePreviewModal
-        open={previewIndex !== null}
-        images={engine.queue.filter((q) => q.previewUrl).map((q) => ({ url: q.previewUrl!, filename: q.file.name, size: q.size })) as PreviewImage[]}
-        index={previewIndex ?? 0}
-        onClose={() => setPreviewIndex(null)}
-        onNavigate={setPreviewIndex}
-      />
     </ToolShell>
   );
 }

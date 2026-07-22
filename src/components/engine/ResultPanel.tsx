@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { RotateCcw, CircleCheck as CheckCircle2, FileText, ArrowLeft, X, Share2, Archive, Pencil, Check, MoveVertical as MoreVertical, Trash2, Download } from 'lucide-react';
 import { formatBytes, cn } from '../../lib/utils';
-import { ImagePreviewModal, type PreviewImage } from './ImagePreviewModal';
+import { ImageViewer } from '../ImageViewer';
 import type { ProcessingResult } from '../../engine/types';
 
 interface ResultPanelProps {
@@ -44,7 +44,7 @@ export function ResultPanel({
   const [renamingIndex, setRenamingIndex] = useState<number | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [menuIndex, setMenuIndex] = useState<number | null>(null);
-  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const [viewerSrc, setViewerSrc] = useState<string | null>(null);
 
   if (!open || results.length === 0) return null;
   const first = results[0];
@@ -76,12 +76,7 @@ export function ResultPanel({
     setMenuIndex(null);
   };
 
-  const previewImages: PreviewImage[] = results.map((r) => ({
-    url: r.url,
-    filename: r.filename,
-    mimeType: r.mimeType,
-    size: r.size,
-  }));
+
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 h-[100dvh]">
@@ -158,7 +153,7 @@ export function ResultPanel({
                   <div key={i} className="group relative bg-neutral-50 dark:bg-neutral-800/50 p-3 rounded-2xl border border-neutral-100 dark:border-neutral-800 flex items-center gap-3">
                     {/* Thumbnail — click to preview */}
                     <button
-                      onClick={() => isImage(r.mimeType) && setPreviewIndex(i)}
+                      onClick={() => isImage(r.mimeType) && setViewerSrc(r.url)}
                       className={cn(
                         'relative w-12 h-12 rounded-xl overflow-hidden bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 flex-shrink-0 flex items-center justify-center transition-all',
                         isImage(r.mimeType) && 'hover:ring-2 hover:ring-blue-500/40 cursor-pointer'
@@ -256,13 +251,10 @@ export function ResultPanel({
         </div>
       </motion.div>
 
-      {/* Full-screen image preview */}
-      <ImagePreviewModal
-        open={previewIndex !== null}
-        images={previewImages}
-        index={previewIndex ?? 0}
-        onClose={() => setPreviewIndex(null)}
-        onNavigate={setPreviewIndex}
+      <ImageViewer
+        src={viewerSrc ?? ''}
+        isOpen={!!viewerSrc}
+        onClose={() => setViewerSrc(null)}
       />
     </div>,
     document.body

@@ -1,17 +1,20 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Trash2, ArrowUp, ArrowDown, FileText, CircleAlert as AlertCircle, Loader as Loader2 } from 'lucide-react';
 import { cn, formatBytes } from '../../lib/utils';
 import type { QueuedFile } from '../../engine/types';
+import { ImageViewer } from '../ImageViewer';
 
 interface FileQueueProps {
   queue: QueuedFile[];
   onRemove: (id: string) => void;
   onReorder?: (id: string, direction: 'up' | 'down') => void;
-  onPreview?: (file: QueuedFile) => void;
   showReorder?: boolean;
 }
 
-export function FileQueue({ queue, onRemove, onReorder, onPreview, showReorder }: FileQueueProps) {
+export function FileQueue({ queue, onRemove, onReorder, showReorder }: FileQueueProps) {
+  const [viewerSrc, setViewerSrc] = useState<string | null>(null);
+
   return (
     <div className="grid grid-cols-1 gap-3">
       <AnimatePresence>
@@ -30,11 +33,11 @@ export function FileQueue({ queue, onRemove, onReorder, onPreview, showReorder }
             )}
           >
             <button
-              onClick={() => onPreview?.(item)}
+              onClick={() => item.previewUrl && setViewerSrc(item.previewUrl)}
               disabled={!item.previewUrl}
               className={cn(
                 'relative w-16 aspect-[1/1.414] bg-neutral-50 dark:bg-neutral-800 rounded-xl overflow-hidden border border-neutral-100 dark:border-neutral-800 flex-shrink-0 flex items-center justify-center transition-all',
-                item.previewUrl && 'hover:ring-2 hover:ring-blue-500/40 cursor-pointer'
+                item.previewUrl && 'hover:ring-2 hover:ring-blue-500/40 cursor-zoom-in'
               )}
             >
               {item.previewUrl ? (
@@ -101,6 +104,12 @@ export function FileQueue({ queue, onRemove, onReorder, onPreview, showReorder }
           </motion.div>
         ))}
       </AnimatePresence>
+
+      <ImageViewer
+        src={viewerSrc ?? ''}
+        isOpen={!!viewerSrc}
+        onClose={() => setViewerSrc(null)}
+      />
     </div>
   );
 }
